@@ -1,2 +1,3 @@
-# msc_thesis
-Code use din my MSc thesis project.
+# MSc thesis
+
+Code used in my MSc thesis project.
