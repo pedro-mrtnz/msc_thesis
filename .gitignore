@@ -19,6 +19,7 @@
 *.rar
 *.tar
 *.zip
+*.pyc
 
 # Logs and databases #
 ######################
@@ -51,3 +52,4 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+__pycache__/
