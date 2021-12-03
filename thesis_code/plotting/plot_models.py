@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 import pandas as pd
-from thesis_code.plotting import nice_plot as nplt
+import nice_plot as nplt
 from scipy.io import FortranFile
 
 def parse_args():
@@ -15,7 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Plots seismic record section')
     parser.add_argument('path2file', 
                         help = 'Path(s) to files, paths are separated by a ,')
-    parser.add_argument('-e', '--extension', defailt='bin',
+    parser.add_argument('-e', '--extension', default='bin',
                         help = 'Plot .dat or .bin files (i.e. -e bin or -e dat)')
     # parser.add_argument('-f', '--format', default='SU',
     #                     help = 'Data format')
@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument('-wp', '--which_prop', type=str, default='',
                         help = 'Which property [vp,vs,rho]')
     parser.add_argument('-show','--show_plot',
-                        help = 'Show a plot', action='store_true')
+                        help = 'Show a plot', action='store_false')
     parser.add_argument('-shot_pos', '--shot_pos_overlay', default='',
                         help = 'Path to file with source positions')
     parser.add_argument('-rec_pos', '--receiver_pos_overlay', default='',
@@ -107,9 +107,9 @@ def join_proc(path, proc_name):
     i = 0
     for d_name in data_dict:
         if 'bin' in proc_name:
-            data_joined[size[i]:size[i]+1] = data_dict[d_name]
+            data_joined[size[i]:size[i+1]] = data_dict[d_name]
         elif 'dat' in proc_name:
-            data_joined[size[i]:size[i]+1, :] = data_dict[d_name]
+            data_joined[size[i]:size[i+1], :] = data_dict[d_name]
         i += 1
     
     return data_joined
