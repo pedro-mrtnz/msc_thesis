@@ -12,7 +12,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'msc_thesis'
+NAME = 'thesis_code'
 DESCRIPTION = 'Contains the code used for my MSc thesis'
 URL = 'https://github.com/pedro-mrtnz/msc_thesis.git'
 EMAIL = 'martinezsaiz.pedro@gmail.com'
