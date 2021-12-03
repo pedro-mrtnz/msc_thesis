@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 import pandas as pd
-import nice_plot as nplt
+from thesis_code.plotting import nice_plot as nplt
 from scipy.io import FortranFile
 
 def parse_args():
