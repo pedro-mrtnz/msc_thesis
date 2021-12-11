@@ -23,5 +23,6 @@ setuptools.setup(
     python_requires = '>=3.6.0',
     install_requires = [
         'numpy', 'scipy', 'pandas', 'obspy', 'gmsh', 'pygmsh', 'meshio'
-    ]
+    ],
+    zip_safe = False
 )
