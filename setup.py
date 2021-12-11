@@ -19,6 +19,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent'
     ],
+    license = 'MIT',
     python_requires = '>=3.6.0',
     install_requires = [
         'numpy', 'scipy', 'pandas', 'obspy', 'gmsh', 'pygmsh', 'meshio'
