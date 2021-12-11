@@ -97,7 +97,7 @@ def sign(x):
     """ Gets sign of x """
     return 1.0 if x >= 0.0 else -1.0
 
-def create_tomo_from_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None):
+def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None):
     """ Writes down the .xyz file which wraps up the 1D velocity and density model. It is 1D in the sense
     that depends only on the z direction.
 
