@@ -104,9 +104,11 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     Args:
         path2mesh   (str): path to MESH folder. Defaults to './MESH'.
         dest_dir    (str): destination folder where to save the .xyz file. Defaults to './DATA'.
-        mesh_size  (list): size of the mesh in the format [(xmin, xmax), (ztop, zbot)]. Defaults to None.
+        mesh_size  (list): size of the mesh in the format [(xmin, xmax), (ztop, zbot)], if None the mesh is
+                            loaded using meshio.read(*.msh) and points are fetched. Defaults to None.
         lc        (float): gmsh discretization parameter. Defaults to 10.0.
-        mesh_res  (tuple): mesh resolution in the format (nx, nz). Defaults to None.
+        mesh_res  (tuple): mesh resolution in the format (nx, nz), if None calculated from mesh_size 
+                            and lc. Defaults to None.
     """
     if mesh_size is None:
         mesh = meshio.read(glob.glob(os.path.join(path2mesh, '*.msh'))[0])
