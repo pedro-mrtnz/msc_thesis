@@ -78,6 +78,7 @@ def grid(x, y, z, resX=200, resY=300, method='linear'):
     
     return X, Y, Z
 
+
 def join_proc(path, proc_name):
     """
     Join the data from different processors (proc*.bin or proc*.dat)
@@ -113,6 +114,105 @@ def join_proc(path, proc_name):
         i += 1
     
     return data_joined
+
+
+def read_bin_data(path: str, field: str):
+    """Reads the binary data from processors after simulation.
+
+    Args:
+        path  (str): path to the files.
+        field (str): field we ant to plot: vp, vs or rho.
+        
+    Returns: 
+        Data dictionary with all the fields: x, z, vp, vs and rho. 
+    """
+    fnames = {
+        'x'  : '/proc0000*_x.bin',
+        'z'  : '/proc0000*_z.bin',
+        'vp' : '/proc0000*_vp.bin',
+        'vs' : '/proc0000*_vs.bin',
+        'rho': '/proc0000*_rho.bin'
+    }
+    data = {}
+    for fname in fnames:
+        data[fname] = join_proc(path, fnames[fname])
+    
+    return data
+
+
+def read_dat_data(path: str):
+    return join_proc(path, f'/proc000*_rho_vp_vs.dat')
+
+
+def read_xyz_data(path: str):
+    return pd.read_csv(glob.glob(os.path.join(path, '*.xyz'))[0], sep='\s+', skiprows=4).values
+
+
+class ConfigPlots:
+    aspect        = 'auto'
+    cmap          = 'nice'
+    interp_method = 'linear'
+    vmin_max      = (None, None)
+    figsize       = (10,5)
+    
+
+def plot_model(path, field, res=(100,200), extension='bin'):
+    """
+    Plot field model, where field can be either velocity or density. 
+    """
+    assert extension in ['bin', 'dat', 'xyz'], "Extension not recognised!"
+    assert np.all(np.isin(field.split(','), ['vp', 'vs', 'rho'])), "Field(s) not recognised!"
+    
+    if extension == 'bin':
+        data = read_bin_data(path, field)
+        x, z = data['x'], data['z']
+    elif extension == 'dat':
+        data = read_dat_data(path)
+        x, z = data[:,0], data[:,1]
+        data = {
+            'rho': data[:,2],
+            'vp' : data[:,3],
+            'vs' : data[:,4]
+        }
+    elif extension == 'xyz':
+        data = read_xyz_data(path)
+        x, z = data[:,0], data[:,1]
+        data = {
+            'vp'  : data[:,2],
+            'vs'  : data[:,3],
+            'rho' : data[:,4]
+        }
+        
+    xmin, xmax = min(x), max(x)
+    zmin, zmax = min(z), max(z)
+    resX, resZ = res
+    
+    fields = field.split(',')
+    if len(fields) == 1:
+        X, Z, F = grid(x, z, data[field], resX=resX, resY=resZ, method=ConfigPlots.interp_method)
+    
+    field2cbar_label = {
+        'vp' : 'Vp [m/s]',
+        'vs' : 'Vs [m/s]',
+        'rho': r'Density [kg/m$^3$]'
+    }
+    if field not in field2cbar_label.keys():
+        print('Field not recognised!')
+        cbar_label = ''
+    else:
+        cbar_label = field2cbar_label[field]
+        
+    nplt.plotting_image(F,
+                        extent = [xmin, xmax, zmin, zmax],
+                        aspect = ConfigPlots.aspect,
+                        cmap = ConfigPlots.cmap,
+                        vmin_max = ConfigPlots.vmin_max,
+                        figsize = ConfigPlots.figsize,
+                        cbar_label = cbar_label)
+    plt.xlabel(r'$x$ [m]')
+    plt.ylabel(r'$z$ [m]')
+    plt.show()
+    
 
 if __name__ == "__main__":
     """
@@ -289,9 +389,9 @@ if __name__ == "__main__":
             X = data[:,0]
             Z = data[:,1]
             data_dict = {
-                'rho': data[:,2], 
-                'vp': data[:,3], 
-                'vs': data[:,4]
+                'vp':  data[:,2], 
+                'vs':  data[:,3], 
+                'rho': data[:,4]
             }
             
             max_X = np.max(X)
