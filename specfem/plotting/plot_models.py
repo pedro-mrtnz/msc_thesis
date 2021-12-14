@@ -219,7 +219,7 @@ if __name__ == "__main__":
                                     extent = [min_X, max_X, min_Z, max_Z],
                                     aspect = 'auto',
                                     cmap = args.cmap,
-                                    vmin = vm[0], vmax = vm[1],
+                                    vmin_max = vm,
                                     figsize = (10, 5),
                                     cbar_label = cbar_labels[prop])
                 print(f'Data: min, max = {np.min(data[prop])}, {np.max(data[prop])}')
@@ -272,7 +272,7 @@ if __name__ == "__main__":
                                     extent = [min_X, max_X, min_Z, max_Z],
                                     aspect = 'auto',
                                     cmap = args.cmap,
-                                    vmin = vm[0], vmax = vm[1],
+                                    vmin_max = vm,
                                     figsize = (10, 5),
                                     cbar_label = cbar_labels[prop])
                 print(f'Data: min, max = {np.min(data_dict[prop])}, {np.max(data_dict[prop])}')
@@ -325,7 +325,7 @@ if __name__ == "__main__":
                                     extent = [min_X, max_X, min_Z, max_Z],
                                     aspect = 'auto',
                                     cmap = args.cmap,
-                                    vmin = vm[0], vmax = vm[1],
+                                    vmin_max = vm,
                                     figsize = (10, 5),
                                     cbar_label = cbar_labels[prop])
                 print(f'Data: min, max = {np.min(data_dict[prop])}, {np.max(data_dict[prop])}')
