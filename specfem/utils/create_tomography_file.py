@@ -73,7 +73,6 @@ class ConfigPlots:
     cmap          = 'nice'
     vmin_max      = (None, None)
     figsize       = (10, 5)
-    cbar_label    = ''
     res           = (100, 200)
     sel_field     = 'vp'          # Select field to plot
     plot          = True          # Plot the resulting field
@@ -111,26 +110,38 @@ def read_material_file(path2mesh):
     return dom2vels, mat_df[prop2col['rho']], mat_df[prop2col['vp']], mat_df[prop2col['vs']]
 
    
-def plot_field(x, z, field, res=ConfigPlots.res, interp_method=ConfigPlots.interp_method):
+def plot_field(x, z, field, field_name, res=ConfigPlots.res, interp_method=ConfigPlots.interp_method):
     """
-    Plots the tomography file.
+    Plot field (vp, vs or rho) stored tomography file. 
     """
     xmin, xmax = min(x), max(x)
     zmin, zmax = min(z), max(z)
     resX, resZ = res
     
     X, Z, F = grid(x, z, field, resX=resX, resY=resZ, method=interp_method)
+    
+    field2cbar_label = {
+        'vp' : 'Vp [m/s]',
+        'vs' : 'Vs [m/s]',
+        'rho': r'Density [kg/m$^3$]'
+    }
+    if field_name not in field2cbar_label.keys():
+        print('Field not recognised!')
+        cbar_label = ''
+    else:
+        cbar_label = field2cbar_label[field_name]
+    
     nplt.plotting_image(F,
                         extent = [xmin, xmax, zmin, zmax],
                         aspect = ConfigPlots.aspect,
                         cmap = ConfigPlots.cmap,
                         vmin_max = ConfigPlots.vmin_max,
                         figsize = ConfigPlots.figsize,
-                        cbar_label = ConfigPlots.cbar_label)
-    plt.xlabel('x [m]')
-    plt.ylabel('z [m]')
+                        cbar_label = cbar_label)
+    plt.xlabel(r'$x$ [m]')
+    plt.ylabel(r'$z$ [m]')
     plt.show()
-    
+
 
 def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None, plot=False):
     """ Writes down the .xyz file which wraps up the 1D velocity and density model. It is 1D in the sense
@@ -195,9 +206,17 @@ def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
     
     assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'        
     if plot:
-        field = collect_fields[ConfigPlots.sel_field]
-        plot_field(xcoords, zcoords, field)
-        
+        # One or more fields can be plotted
+        field_name = ConfigPlots.sel_field
+        field_names = field_name.split(',')
+        if len(field_names) == 1:
+            field = collect_fields[field_name]
+            plot_field(xcoords, zcoords, field, field_name)
+        else:
+            for field_name in field_names:
+                field = collect_fields[field_name.strip()]
+                plot_field(xcoords, zcoords, field, field_name)
+                      
     # Create the velocity file
     xyz_fname = 'profile.xyz'
     with open(os.path.join(dest_dir, xyz_fname), 'w') as f:
@@ -222,7 +241,9 @@ if __name__ == '__main__':
     parser.add_argument('-dest', '--dest_dir', type=str,
                         default='./DATA')
     parser.add_argument('-res', '--gridplot_resolution', type=tuple)
-    parser.add_argument('-show', '--show_plot', action='store_true')
+    parser.add_argument('-sel_field', '--sel_field', type=str,
+                        help = "Field(s) to plot: vp, vs or rho. Pass 'vp,rho' to plot both.")
+    parser.add_argument('-show', '--show_plot', action='store_false')
     
     args = parser.parse_args()
     
@@ -230,6 +251,9 @@ if __name__ == '__main__':
     #     'mesh_res' is the resolution of the mesh, which is calculated based on 'lc'.
     if args.gridplot_resolution:
         ConfigPlots.res = args.gridplot_resolution
+        
+    if args.sel_field:
+        ConfigPlots.sel_field = args.sel_field
     
     create_tomo_1Dhomo_file(args.path2mesh, 
                             args.dest_dir, 
