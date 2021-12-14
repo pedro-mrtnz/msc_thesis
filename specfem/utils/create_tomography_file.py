@@ -58,9 +58,27 @@ The file profile.xyz has to be written under the following format:
 """
 import os
 import glob
+import argparse
 import numpy as np
 import pandas as pd
 import meshio
+import matplotlib.pyplot as plt
+
+import specfem.plotting.nice_plot as nplt
+from specfem.plotting.plot_models import grid
+
+
+class ConfigPlots:
+    aspect        = 'auto'
+    cmap          = 'nice'
+    vmin_max      = (None, None)
+    figsize       = (10, 5)
+    cbar_label    = ''
+    res           = (100, 200)
+    sel_field     = 'vp'          # Select field to plot
+    plot          = True          # Plot the resulting field
+    interp_method = 'linear'
+
 
 def read_material_file(path2mesh):
     """
@@ -91,24 +109,42 @@ def read_material_file(path2mesh):
         dom2vels[dom_id] = df_
     
     return dom2vels, mat_df[prop2col['rho']], mat_df[prop2col['vp']], mat_df[prop2col['vs']]
-        
 
-def sign(x):
-    """ Gets sign of x """
-    return 1.0 if x >= 0.0 else -1.0
+   
+def plot_field(x, z, field, res=ConfigPlots.res, interp_method=ConfigPlots.interp_method):
+    """
+    Plots the tomography file.
+    """
+    xmin, xmax = min(x), max(x)
+    zmin, zmax = min(z), max(z)
+    resX, resZ = res
+    
+    X, Z, F = grid(x, z, field, resX=resX, resY=resZ, method=interp_method)
+    nplt.plotting_image(F,
+                        extent = [xmin, xmax, zmin, zmax],
+                        aspect = ConfigPlots.aspect,
+                        cmap = ConfigPlots.cmap,
+                        vmin_max = ConfigPlots.vmin_max,
+                        figsize = ConfigPlots.figsize,
+                        cbar_label = ConfigPlots.cbar_label)
+    plt.xlabel('x [m]')
+    plt.ylabel('z [m]')
+    plt.show()
+    
 
-def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None):
+def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None, plot=False):
     """ Writes down the .xyz file which wraps up the 1D velocity and density model. It is 1D in the sense
     that depends only on the z direction.
 
     Args:
-        path2mesh   (str): path to MESH folder. Defaults to './MESH'.
-        dest_dir    (str): destination folder where to save the .xyz file. Defaults to './DATA'.
-        mesh_size  (list): size of the mesh in the format [(xmin, xmax), (ztop, zbot)], if None the mesh is
-                            loaded using meshio.read(*.msh) and points are fetched. Defaults to None.
+        path2mesh (str)  : path to MESH folder. Defaults to './MESH'.
+        dest_dir  (str)  : destination folder where to save the .xyz file. Defaults to './DATA'.
+        mesh_size (list) : size of the mesh in the format [(xmin, xmax), (ztop, zbot)], if None the mesh is
+                           loaded using meshio.read(*.msh) and points are fetched. Defaults to None.
         lc        (float): gmsh discretization parameter. Defaults to 10.0.
         mesh_res  (tuple): mesh resolution in the format (nx, nz), if None calculated from mesh_size 
-                            and lc. Defaults to None.
+                           and lc. Defaults to None.
+        plot      (bool) : if True the field is plotted. Defaults to True.
     """
     if mesh_size is None:
         mesh = meshio.read(glob.glob(os.path.join(path2mesh, '*.msh'))[0])
@@ -143,6 +179,24 @@ def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
     for dom_id, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
         mask = (zi <= sup_lim) & (zi >= inf_lim)
         dom_in_zi[mask] = dom_id + 1
+    
+    xcoords = []
+    zcoords = []
+    collect_fields = {'vp': [], 'vs': [], 'rho': []}    
+    for i, zval in enumerate(zi):
+        for xval in xi:
+            dom_id = dom_in_zi[i]
+            df_ = d2v[dom_id]  # pd.Series
+            xcoords.append(xval)
+            zcoords.append(zval)
+            collect_fields['vp'].append(df_['vp'])
+            collect_fields['vs'].append(df_['vs'])
+            collect_fields['rho'].append(df_['rho'])
+    
+    assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'        
+    if plot:
+        field = collect_fields[ConfigPlots.sel_field]
+        plot_field(xcoords, zcoords, field)
         
     # Create the velocity file
     xyz_fname = 'profile.xyz'
@@ -152,11 +206,35 @@ def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
         f.write(f'{dx} {dz}\n')
         f.write(f'{nx} {nz}\n')
         f.write(f'{min(vp)} {max(vp)} {min(vs)} {max(vs)} {min(rho)} {max(rho)}\n')
-        for i, z_val in enumerate(zi):
-            for x_val in xi:
-                dom_id = dom_in_zi[i]
-                df_ = d2v[dom_id]  # pd.Series
-                f.write(f"{x_val} {z_val} {df_['vp']} {df_['vs']} {df_['rho']}\n")
+        for j in range(len(xcoords)):
+            f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
         
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Creates tomography file and plots it (if desired)')
+    parser.add_argument('xmin', type=float)
+    parser.add_argument('xmax', type=float)
+    parser.add_argument('ztop', type=float)
+    parser.add_argument('zbot', type=float)
+    parser.add_argument('lc', type=float)
+    parser.add_argument('-p2m', '--path2mesh', type=str,
+                        default='./MESH')
+    parser.add_argument('-dest', '--dest_dir', type=str,
+                        default='./DATA')
+    parser.add_argument('-res', '--gridplot_resolution', type=tuple)
+    parser.add_argument('-show', '--show_plot', action='store_true')
     
+    args = parser.parse_args()
+    
+    # NB: 'gridplot_resolution' refers to the resolution of the plot, whereas
+    #     'mesh_res' is the resolution of the mesh, which is calculated based on 'lc'.
+    if args.gridplot_resolution:
+        ConfigPlots.res = args.gridplot_resolution
+    
+    create_tomo_1Dhomo_file(args.path2mesh, 
+                            args.dest_dir, 
+                            mesh_size = [(args.xmin, args.xmax), (args.zbot, args.ztop)], 
+                            lc = args.lc,
+                            mesh_res = None, 
+                            plot = args.show_plot)
     

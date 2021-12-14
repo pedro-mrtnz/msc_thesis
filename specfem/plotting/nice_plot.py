@@ -5,7 +5,7 @@ import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 
-def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfigure=True, colorbar=True, figsize=(8,8), save=False, savename='', tform_overlay=(False, 0), title='', extent=None, interpolation='nearest', logscale=False, linthresh=1e-4, cbar_label=''):
+def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfigure=True, fig_number=1, colorbar=True, figsize=(8,8), save=False, savename='', tform_overlay=(False, 0), title='', extent=None, interpolation='nearest', logscale=False, linthresh=1e-4, cbar_label=''):
     """
     Plotting a 2D image.
 
@@ -39,6 +39,7 @@ def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfig
         
     if newfigure:
         fig, axs = plt.subplots(figsize=figsize, constrained_layout=True)
+        fig.number = fig_number
         axs.set_title(title)
         axs.xaxis.set_ticks_position('top')
         axs.xaxis.set_label_position('top')
