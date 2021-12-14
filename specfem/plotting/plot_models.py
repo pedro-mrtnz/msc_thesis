@@ -95,7 +95,7 @@ def join_proc(path, proc_name):
         elif 'dat' in proc_name:
             data_dict[name_f] = pd.read_csv(data_n, sep='\s+').values
     
-        print(f'Joining: {name_f}')
+        # print(f'Joining: {name_f}')
         size += [data_dict[name_f].shape[0]]
     
     if 'bin' in proc_name:
