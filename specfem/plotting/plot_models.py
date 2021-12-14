@@ -191,6 +191,7 @@ def plot_model(path, field, res=(100,200), extension='bin'):
     fields = field.split(',')
     if len(fields) == 1:
         X, Z, F = grid(x, z, data[field], resX=resX, resY=resZ, method=ConfigPlots.interp_method)
+    # Fixme: case in which len(fields) > 1
     
     field2cbar_label = {
         'vp' : 'Vp [m/s]',
@@ -213,6 +214,7 @@ def plot_model(path, field, res=(100,200), extension='bin'):
     plt.xlabel(r'$x$ [m]')
     plt.ylabel(r'$z$ [m]')
     plt.show()
+    
     
 
 if __name__ == "__main__":

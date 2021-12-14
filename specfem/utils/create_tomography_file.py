@@ -143,9 +143,11 @@ def plot_field(x, z, field, field_name, res=ConfigPlots.res, interp_method=Confi
     plt.show()
 
 
-def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None, plot=False):
+def create_tomo_1Deven_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None, plot=False):
     """ Writes down the .xyz file which wraps up the 1D velocity and density model. It is 1D in the sense
-    that depends only on the z direction.
+    that depends only on the z direction. This model has EVENLY SPACED LAYERS. 
+    
+    NB: a more general model where you can specify which layers are UNEVEN is implemented further on.
 
     Args:
         path2mesh (str)  : path to MESH folder. Defaults to './MESH'.
@@ -160,7 +162,7 @@ def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
     if mesh_size is None:
         mesh = meshio.read(glob.glob(os.path.join(path2mesh, '*.msh'))[0])
         mesh_points = mesh.points
-        xmesh = mesh_points[:,0]
+        xmesh = mesh_points[:,0] 
         zmesh = mesh_points[:,1] 
 
         xmin, xmax = np.ceil(min(xmesh)), np.floor(max(xmesh))
@@ -179,7 +181,7 @@ def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
     N = len(d2v)                                    # Number of evenly spaced domain_ids
     dom_size = (zmax - zmin)/N                      # Size of each domain
     dom_intervals = np.cumsum([0] + [-dom_size]*N)  # Domain intervals
-    # Thinkme: think case in which zmax != 0
+    # Fixme: think case in which zmax != 0
     
     # Interpolating axis
     dx = (xmax - xmin)/(nx - 1)
@@ -227,7 +229,104 @@ def create_tomo_1Dhomo_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
         f.write(f'{min(vp)} {max(vp)} {min(vs)} {max(vs)} {min(rho)} {max(rho)}\n')
         for j in range(len(xcoords)):
             f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
-        
+
+
+def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', uneven=None, mesh_size=None, lc=10.0, mesh_res=None, plot=False):
+    """
+    Generalizes the evenly spaced multilayer. It allows for UNEVEN layers that we have to specify. E.g. if we
+    want the sandwich model, we would need: uneven = {1: 2000.0, 85: 2000.0}. This means that domain ids 1
+    and 85 are 2000m big. The rest of the multilayer is re-ajusted. 
+    
+    New args:
+        uneven (dict): dictionary with domain ids as keys and the sizes of those domains as values. If None
+                       then we retrieve the evenly spaced multilayer. 
+    """
+    if mesh_size is None:
+        mesh = meshio.read(glob.glob(os.path.join(path2mesh, '*.msh'))[0])
+        mesh_points = mesh.points 
+        xmesh = mesh_points[:,0] 
+        zmesh = mesh_points[:,1] 
+
+        xmin, xmax = np.ceil(min(xmesh)), np.floor(max(xmesh))
+        zmin, zmax = np.ceil(min(zmesh)), np.floor(max(zmesh))
+    else:
+        xmin, xmax = min(mesh_size[0]), max(mesh_size[0])
+        zmin, zmax = min(mesh_size[1]), max(mesh_size[1])
+    
+    if mesh_res is None:
+        nx = int(np.abs(xmax - xmin)/lc)
+        nz = int(np.abs(zmax - zmin)/lc)
+    else:
+        nx, nz = mesh_res
+    
+    d2v, rho, vp, vs = read_material_file(path2mesh)
+    
+    # Interpolating axis
+    dx = (xmax - xmin)/(nx - 1)
+    dz = (zmax - zmin)/(nz - 1)
+    xi = np.linspace(xmin, xmax, nx)
+    zi = np.linspace(zmin, zmax, nz)
+    dom_in_zi = np.zeros_like(zi).astype('int32') 
+    
+    if uneven is None:
+        N = len(d2v)                                    
+        dom_size = (zmax - zmin)/N                      
+        dom_intervals = np.cumsum([0] + [-dom_size]*N) 
+    else:
+        multilayer_size = zmax - zmin
+        for v in uneven.values():
+            multilayer_size -= v
+
+        N = len(d2v) - len(uneven)
+        dom_size = multilayer_size/N 
+        dom_intervals = [0.0]
+        for dom_id in d2v.keys():
+            size_ = dom_size
+            if dom_id in uneven:
+                size_ = uneven[dom_id]
+            dom_intervals += [dom_intervals[-1] - size_]
+            
+    for dom_id, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
+        mask = (zi <= sup_lim) & (zi >= inf_lim)
+        dom_in_zi[mask] = dom_id + 1
+    
+    xcoords = []
+    zcoords = []
+    collect_fields = {'vp': [], 'vs': [], 'rho': []}    
+    for i, zval in enumerate(zi):
+        for xval in xi:
+            dom_id = dom_in_zi[i]
+            df_ = d2v[dom_id]  # pd.Series
+            xcoords.append(xval)
+            zcoords.append(zval)
+            collect_fields['vp'].append(df_['vp'])
+            collect_fields['vs'].append(df_['vs'])
+            collect_fields['rho'].append(df_['rho'])
+    
+    assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'    
+    if plot:
+        # One or more fields can be plotted
+        field_name = ConfigPlots.sel_field
+        field_names = field_name.split(',')
+        if len(field_names) == 1:
+            field = collect_fields[field_name]
+            plot_field(xcoords, zcoords, field, field_name)
+        else:
+            for field_name in field_names:
+                field = collect_fields[field_name.strip()]
+                plot_field(xcoords, zcoords, field, field_name)
+    
+    # Create the velocity file
+    xyz_fname = 'profile.xyz'
+    with open(os.path.join(dest_dir, xyz_fname), 'w') as f:
+        print(f'Name of the file: {f.name}')
+        f.write(f'{xmin} {zmin} {xmax} {zmax}\n')
+        f.write(f'{dx} {dz}\n')
+        f.write(f'{nx} {nz}\n')
+        f.write(f'{min(vp)} {max(vp)} {min(vs)} {max(vs)} {min(rho)} {max(rho)}\n')
+        for j in range(len(xcoords)):
+            f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Creates tomography file and plots it (if desired)')
@@ -241,9 +340,10 @@ if __name__ == '__main__':
     parser.add_argument('-dest', '--dest_dir', type=str,
                         default='./DATA')
     parser.add_argument('-res', '--gridplot_resolution', type=tuple)
-    parser.add_argument('-sel_field', '--sel_field', type=str,
+    parser.add_argument('-f', '--sel_field', type=str,
                         help = "Field(s) to plot: vp, vs or rho. Pass 'vp,rho' to plot both.")
-    parser.add_argument('-show', '--show_plot', action='store_true')
+    parser.add_argument('-show', '--show_plot', action='store_false')
+    parser.add_argument('-uev', '--uneven', type=bool, action='store_false')
     
     args = parser.parse_args()
     
@@ -255,10 +355,18 @@ if __name__ == '__main__':
     if args.sel_field:
         ConfigPlots.sel_field = args.sel_field
     
-    create_tomo_1Dhomo_file(args.path2mesh, 
-                            args.dest_dir, 
-                            mesh_size = [(args.xmin, args.xmax), (args.zbot, args.ztop)], 
-                            lc = args.lc,
-                            mesh_res = None, 
-                            plot = args.show_plot)
+    if args.uneven:
+        # We read from a .txt file
+        uneven_df   = pd.read_csv('./uneven_dict.txt', header=None, sep=' ', names=['dom_id', 'size'])    
+        uneven_dict = {dom_id: size for dom_id, size in zip(uneven_df['dom_id'], uneven_df['size'])}
+    else:
+        uneven_dict = None
+    
+    create_tomo_1Dfile(args.path2mesh, 
+                       args.dest_dir, 
+                       uneven = uneven_dict,
+                       mesh_size = [(args.xmin, args.xmax), (args.zbot, args.ztop)], 
+                       lc = args.lc,
+                       mesh_res = None, 
+                       plot = args.show_plot)
     
