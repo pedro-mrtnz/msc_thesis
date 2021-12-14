@@ -243,7 +243,7 @@ if __name__ == '__main__':
     parser.add_argument('-res', '--gridplot_resolution', type=tuple)
     parser.add_argument('-sel_field', '--sel_field', type=str,
                         help = "Field(s) to plot: vp, vs or rho. Pass 'vp,rho' to plot both.")
-    parser.add_argument('-show', '--show_plot', action='store_false')
+    parser.add_argument('-show', '--show_plot', action='store_true')
     
     args = parser.parse_args()
     
