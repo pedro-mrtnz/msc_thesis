@@ -7,6 +7,15 @@ import pandas as pd
 import specfem.plotting.nice_plot as nplt
 from scipy.io import FortranFile
 
+
+class ConfigPlots:
+    aspect        = 'auto'
+    cmap          = 'nice'
+    interp_method = 'linear'
+    vmin_max      = (None, None)
+    figsize       = (10,5)
+    
+
 def parse_args():
     """
     This function run argparse to process the arguments given 
@@ -147,14 +156,6 @@ def read_dat_data(path: str):
 
 def read_xyz_data(path: str):
     return pd.read_csv(glob.glob(os.path.join(path, '*.xyz'))[0], sep='\s+', skiprows=4).values
-
-
-class ConfigPlots:
-    aspect        = 'auto'
-    cmap          = 'nice'
-    interp_method = 'linear'
-    vmin_max      = (None, None)
-    figsize       = (10,5)
     
 
 def plot_model(path, field, res=(100,200), extension='bin'):
@@ -191,7 +192,7 @@ def plot_model(path, field, res=(100,200), extension='bin'):
     fields = field.split(',')
     if len(fields) == 1:
         X, Z, F = grid(x, z, data[field], resX=resX, resY=resZ, method=ConfigPlots.interp_method)
-    # Fixme: case in which len(fields) > 1
+    # Fixme: implement case in which len(fields) > 1
     
     field2cbar_label = {
         'vp' : 'Vp [m/s]',
