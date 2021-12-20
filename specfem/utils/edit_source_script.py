@@ -31,8 +31,8 @@ def set_source_coords(new_coords, path2source='./DATA'):
     Returns: re-writes the source coordinates.
     """
     xs, zs = new_coords
-    xs_txt = f'xs                              = {xs}          # source location x in meters'
-    zs_txt = f'zs                              = {zs}          # source location z in meters (zs is ignored if source_surf is set to true, it is replaced with the topography height)'
+    xs_txt = f'xs                              = {xs}          # source location x in meters\n'
+    zs_txt = f'zs                              = {zs}          # source location z in meters (zs is ignored if source_surf is set to true, it is replaced with the topography height)\n'
     
     fname = os.path.join(path2source, 'SOURCE')
     with open(fname, 'r') as f:
