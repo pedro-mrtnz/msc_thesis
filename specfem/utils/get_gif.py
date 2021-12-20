@@ -4,7 +4,7 @@ from PIL import Image
 
 def get_gif_from_imgs(outfiles_path):
     """
-    Fetches all the images in OUTPUT FILES and creates a .GIF out of them
+    Fetches all the images in OUTPUT FILES and creates a .GIF out of them.
     
     Args:
         outfiles_path (str): path to the OUTPUT_FILES folder.
