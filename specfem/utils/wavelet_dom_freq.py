@@ -13,7 +13,8 @@ def set_dom_freq(f0, path2source='./DATA'):
     with open(fname, 'r') as f:
         lines = f.readlines()
         for i, l in enumerate(lines):
-            line_num = i
+            if l[:2] == 'f0':
+                line_num = i
         line_txt = f'f0                              = {f0}           # dominant source frequency (Hz) if not Dirac or Heaviside\n'
         lines[line_num] = line_txt
     
