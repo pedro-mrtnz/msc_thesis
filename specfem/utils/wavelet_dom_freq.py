@@ -10,6 +10,7 @@ def set_dom_freq(f0, path2source='./DATA'):
     Returns: re-writes the existing SOURCE script with the new f0.
     """
     fname = os.path.join(path2source, 'SOURCE')
+    line_num = None
     with open(fname, 'r') as f:
         lines = f.readlines()
         for i, l in enumerate(lines):
