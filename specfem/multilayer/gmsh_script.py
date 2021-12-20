@@ -305,7 +305,7 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult):
         gmsh.finalize()
         
         mesh = meshio.read("mesh.msh")
-        # os.remove('sandwich.msh')
+        os.remove('sandwich.msh')
         
         return mesh
 
