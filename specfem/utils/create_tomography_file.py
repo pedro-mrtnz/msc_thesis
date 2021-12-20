@@ -342,7 +342,8 @@ if __name__ == '__main__':
     parser.add_argument('ztop', type=float)
     parser.add_argument('zbot', type=float)
     parser.add_argument('lc', type=float)
-    parser.add_argument('L_mult', type=float)
+    parser.add_argument('-L_mult', type=float, default=None,
+                        help = 'Size of the multilayer zone.')
     parser.add_argument('-p2m', '--path2mesh', type=str,
                         default='./MESH')
     parser.add_argument('-dest', '--dest_dir', type=str,
@@ -369,13 +370,6 @@ if __name__ == '__main__':
         uneven_dict = {dom_id: size for dom_id, size in zip(uneven_df['dom_id'], uneven_df['size'])}
     else:
         uneven_dict = None
-    
-    # if args.L_mult:
-    #     L_mult = args.L_mult
-    # else:
-    #     L_mult = None
-    
-    print(args.L_mult)
     
     create_tomo_1Dfile(args.path2mesh, 
                        args.dest_dir, 
