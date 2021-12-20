@@ -64,6 +64,7 @@ def create_multilayer_mesh(xmin, xmax, ytop, ybot, lc, N, verbose=True):
         
     Return: mesh info
     """
+    # Fixme: use TrnasfiniteCurve and Surface to make it completely structured.
     # Length of the layers
     L = np.abs(ytop - ybot)/N
     
