@@ -271,17 +271,16 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     dom_in_zi = np.zeros_like(zi).astype('int32')
     
     if L_mult is not None:
-        # We get the usual sandwich layer
+        # We get the usual sandwich model
         delta = zmax - zmin
         L = (delta - L_mult)/2
-        # zbot_mult = zmin + L
-        # ztop_mult = zbot_mult + L_mult
         uneven = {1: L, len(d2v): L}
     elif uneven is not None:
         L_mult = zmax - zmin
         for v in uneven.values():
             L_mult -= v
     else:
+        # We get multilayer model
         L_mult = zmax - zmin
         uneven = {}
 
