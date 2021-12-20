@@ -1,9 +1,14 @@
-"""
-SCRIPT THAT SETS THE DOMINANT FREQUENCY OF THE WAVELET IN THE 'SOURCE' SCRIPT.
-"""
 import os
 
 def set_dom_freq(f0, path2source='./DATA'):
+    """Edits the dominant frequency f0 contained in the SOURCE file to one of our desire.
+
+    Args:
+        f0          (float): new dominant frequency.
+        path2source (str)  : path to the SOURCE file we want to edit. Defaults to './DATA'.
+        
+    Returns: re-writes the existing SOURCE script with the new f0.
+    """
     fname = os.path.join(path2source, 'SOURCE')
     with open(fname, 'r') as f:
         lines = f.readlines()
