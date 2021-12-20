@@ -243,6 +243,7 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         L_mult (float): size of the multilayer. It has higher hierarchy than 'uneven', in the sense that if
                         L_mult = None, the it looks into 'uneven'. 
     """
+    print(L_mult)
     if mesh_size is None:
         mesh = meshio.read(glob.glob(os.path.join(path2mesh, '*.msh'))[0])
         mesh_points = mesh.points 
