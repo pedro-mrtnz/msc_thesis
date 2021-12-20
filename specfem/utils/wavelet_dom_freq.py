@@ -18,4 +18,4 @@ def set_dom_freq(f0, path2source='./DATA'):
         lines[line_num] = line_txt
     
     with open(fname, 'w') as f:
-        f.writelines()
+        f.writelines(lines)
