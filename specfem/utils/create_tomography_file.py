@@ -144,7 +144,7 @@ def plot_field(x, z, field, field_name, res=ConfigPlots.res, interp_method=Confi
 
 
 def create_tomo_1Deven_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None, plot=False):
-    """ Writes down the .xyz file which wraps up the 1D velocity and density model. It is 1D in the sense
+    """ Writes down the .xyz file which wraps up the 1D velocity and density model of the MULTILAYER. It is 1D in the sense
     that depends only on the z direction. This model has EVENLY SPACED LAYERS. 
     
     NB: a more general model where you can specify which layers are UNEVEN is implemented further on.
@@ -231,15 +231,17 @@ def create_tomo_1Deven_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
             f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
 
 
-def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', uneven=None, mesh_size=None, lc=10.0, mesh_res=None, plot=False):
+def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, uneven=None, L_mult=None, mesh_res=None, plot=False):
     """
     Generalizes the evenly spaced multilayer. It allows for UNEVEN layers that we have to specify. E.g. if we
     want the sandwich model, we would need: uneven = {1: 2000.0, 85: 2000.0}. This means that domain ids 1
-    and 85 are 2000m big. The rest of the multilayer is re-ajusted. 
+    and 85 are 2000m big each. The rest of the multilayer is re-ajusted. 
     
     New args:
-        uneven (dict): dictionary with domain ids as keys and the sizes of those domains as values. If None
-                       then we retrieve the evenly spaced multilayer. 
+        uneven (dict) : dictionary with domain ids as keys and the sizes of those domains as values. If None
+                        then we retrieve the evenly spaced multilayer. 
+        L_mult (float): size of the multilayer. It has higher hierarchy than 'uneven', in the sense that if
+                        L_mult = None, the it looks into 'uneven'. 
     """
     if mesh_size is None:
         mesh = meshio.read(glob.glob(os.path.join(path2mesh, '*.msh'))[0])
@@ -266,26 +268,32 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', uneven=None, mesh_
     dz = (zmax - zmin)/(nz - 1)
     xi = np.linspace(xmin, xmax, nx)
     zi = np.linspace(zmin, zmax, nz)
-    dom_in_zi = np.zeros_like(zi).astype('int32') 
+    dom_in_zi = np.zeros_like(zi).astype('int32')
     
-    if uneven is None:
-        N = len(d2v)                                    
-        dom_size = (zmax - zmin)/N                      
-        dom_intervals = np.cumsum([0] + [-dom_size]*N) 
-    else:
-        multilayer_size = zmax - zmin
+    if L_mult is not None:
+        # We get the usual sandwich layer
+        delta = zmax - zmin
+        L = (delta - L_mult)/2
+        # zbot_mult = zmin + L
+        # ztop_mult = zbot_mult + L_mult
+        uneven = {1: L, len(d2v): L}
+    elif uneven is not None:
+        L_mult = zmax - zmin
         for v in uneven.values():
-            multilayer_size -= v
+            L_mult -= v
+    else:
+        L_mult = zmax - zmin
+        uneven = {}
 
-        N = len(d2v) - len(uneven)
-        dom_size = multilayer_size/N 
-        dom_intervals = [0.0]
-        for dom_id in d2v.keys():
-            size_ = dom_size
-            if dom_id in uneven:
-                size_ = uneven[dom_id]
-            dom_intervals += [dom_intervals[-1] - size_]
-            
+    N = len(d2v) - len(uneven)
+    dom_size = L_mult/N 
+    dom_intervals = [0.0]
+    for dom_id in d2v.keys():
+        size_ = dom_size
+        if dom_id in uneven:
+            size_ = uneven[dom_id]
+        dom_intervals += [dom_intervals[-1] - size_]
+        
     for dom_id, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
         mask = (zi <= sup_lim) & (zi >= inf_lim)
         dom_in_zi[mask] = dom_id + 1
@@ -335,6 +343,7 @@ if __name__ == '__main__':
     parser.add_argument('ztop', type=float)
     parser.add_argument('zbot', type=float)
     parser.add_argument('lc', type=float)
+    parser.add_argument('L_mult', type=float)
     parser.add_argument('-p2m', '--path2mesh', type=str,
                         default='./MESH')
     parser.add_argument('-dest', '--dest_dir', type=str,
@@ -362,11 +371,19 @@ if __name__ == '__main__':
     else:
         uneven_dict = None
     
+    # if args.L_mult:
+    #     L_mult = args.L_mult
+    # else:
+    #     L_mult = None
+    
+    print(args.L_mult)
+    
     create_tomo_1Dfile(args.path2mesh, 
                        args.dest_dir, 
                        uneven = uneven_dict,
                        mesh_size = [(args.xmin, args.xmax), (args.zbot, args.ztop)], 
                        lc = args.lc,
+                       L_mult = args.L_mult,
                        mesh_res = None, 
                        plot = args.show_plot)
     
