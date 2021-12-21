@@ -174,6 +174,9 @@ def create_box_mesh(xmin, xmax, ztop, zbot, lc):
     
     # model.synchronize()
     
+    nx = np.ceil((xmax - xmin)/lc).astype(int)
+    nz = np.ceil((ztop - zbot)/lc).astype(int)
+    
     rect = model.add_rectangle(xmin, xmax, zbot, ztop, 0, lc)
     surface = rect.surface
     
@@ -190,7 +193,7 @@ def create_box_mesh(xmin, xmax, ztop, zbot, lc):
     mesh = meshio.read('nan.msh')
     os.remove('nan.msh')
     
-    return mesh
+    return mesh, nx, nz
 
 
 def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
@@ -275,6 +278,9 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
         n_top  = np.ceil(0.65 * L/lc).astype(int) 
         n_mult = np.ceil(mres * L_mult/lc).astype(int)
         n_bot  = np.ceil(0.4 * L/lc).astype(int)
+        
+        nz = n_top + n_mult + n_bot
+        nx = np.ceil((xmax - xmin)/lc).astype(int)
 
         model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.02)
         model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.02)
@@ -310,7 +316,7 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
         mesh = meshio.read("mesh.msh")
         os.remove("mesh.msh")
         
-        return mesh
+        return mesh, nx, nz
 
     else:
         # The otherwise regular grid is obtained
