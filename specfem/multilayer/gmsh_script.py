@@ -193,7 +193,7 @@ def create_box_mesh(xmin, xmax, ztop, zbot, lc):
     return mesh
 
 
-def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult):
+def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
     """
     Creates regular box model, but which contains a finer zone. E.g. this finer
     zone is where the multilayer will be defined.
@@ -201,6 +201,8 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult):
     New args:
         L_mult (float): size of the finer zone of the mesh. If None, then we get 
                         otherwise regular box grid, with no finer zones. 
+        mres   (float): resolution factor with which increase the resolution in 
+                        multilayer w.r.t. the default L_mult/N resolution.
     
     Returns: mesh 
     
@@ -270,9 +272,9 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult):
         surf_bot  = model.geo.addPlaneSurface([cl_bot])
         surf_top  = model.geo.addPlaneSurface([cl_top])
 
-        n_top  = np.ceil(0.65 * L/lc).astype(int)
-        n_mult = np.ceil(65 * L_mult/lc).astype(int)
-        n_bot  = np.ceil(0.5 * L/lc).astype(int)
+        n_top  = np.ceil(0.65 * L/lc).astype(int) 
+        n_mult = np.ceil(mres * L_mult/lc).astype(int)
+        n_bot  = np.ceil(0.4 * L/lc).astype(int)
 
         model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.02)
         model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.02)
