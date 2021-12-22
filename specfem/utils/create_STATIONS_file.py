@@ -2,15 +2,15 @@ import sys
 import os
 import math
 
-def create_stations_file(model_size, pos_ini, nsts_x, nsts_z, dest_dir='./DATA'):
+def create_stations_file(rec_lims, pos_ini, nsts_x, nsts_z, dest_dir='./DATA'):
     """Creates the STATIONS (receivers) file called from the Par_file.
 
     Args:
-        model_size (tuple): size of the model ([xmin, xmax], [zmin, zmax]).
-        pos_ini    (tuple): starting position (x0, z0).
-        nsts_x     (int)  : number of receivers along x.
-        nsts_z     (int)  : number of receivers along z.
-        dest_dir   (str)  : path where to save the STATIONS fie.
+        rec_lims (tuple): range of surface occupied by receivers (xrange, zrange).
+        pos_ini  (tuple): starting position (x0, z0).
+        nsts_x   (int)  : number of receivers along x.
+        nsts_z   (int)  : number of receivers along z.
+        dest_dir (str)  : path where to save the STATIONS fie.
     """
     if not os.path.isdir(dest_dir):
         sys.exit("Destination path doesn't exist!")
@@ -23,13 +23,9 @@ def create_stations_file(model_size, pos_ini, nsts_x, nsts_z, dest_dir='./DATA')
         raise Exception(f"File won't open: {os.path.join(dest_dir, fname)}")
 
     x0, z0 = pos_ini
-    
-    xlims, zlims = model_size
-    dim_x = max(xlims) - min(xlims)
-    dim_z = max(zlims) - min(zlims)
-    
-    dx = dim_x/(nsts_x - 1) if nsts_x > 1 else 0.0
-    dz = dim_z/(nsts_z - 1) if nsts_z > 1 else 0.0
+    xrange, zrange = rec_lims
+    dx = xrange/(nsts_x - 1) if nsts_x > 1 else 0.0
+    dz = zrange/(nsts_z - 1) if nsts_z > 1 else 0.0
     
     # String formatting
     idx_len = int(math.ceil(math.log10(nsts_x * nsts_z)))
