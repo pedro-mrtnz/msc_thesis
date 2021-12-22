@@ -39,13 +39,13 @@ def create_stations_file(model_size, pos_ini, nsts_x, nsts_z, dest_dir='./DATA')
     for iz in range(nsts_z):
         for ix in range(nsts_x):
             irec += 1
-            x = x0 + ix * dx                  # Station position
+            x = x0 + ix * dx                    # Station position
             z = z0 + iz * dz
             
-            st_name = f"S{irec:0{idx_len}d}"  # Station name
-            network = "AA"                    # Network station
+            st_name = f"S{irec:000{idx_len}d}"  # Station name
+            network = "AA"                      # Network station
             
-            f.write(f"{st_name}\t{network}\t{x}\t{z}\t{0.0}\t{0.0}\n")
+            f.write(f"{st_name}\t{network}\t{x:.2f}\t{z:.2f}\t{0.0}\t{0.0}\n")
     
     f.close()
                         
