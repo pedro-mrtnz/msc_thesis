@@ -260,6 +260,7 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         nz = np.ceil(np.abs(zmax - zmin)/lc).astype(int)
     else:
         nx, nz = mesh_res
+        # Fixme: think about the case in which the vertical resolution is not even
     
     d2v, rho, vp, vs = read_material_file(path2mesh)
     
