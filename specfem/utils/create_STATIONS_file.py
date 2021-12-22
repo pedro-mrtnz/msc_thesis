@@ -45,7 +45,7 @@ def create_stations_file(model_size, pos_ini, nsts_x, nsts_z, dest_dir='./DATA')
             st_name = f"S{irec:0{idx_len}d}"  # Station name
             network = "AA"                    # Network station
             
-            f.write(f"{st_name:<10s}\t{network:<15s}\t{f'{x:.2f}':<15s}\t{z:.2f}\t{0.0}\t{0.0}\n")
+            f.write(f"{st_name:<10s}\t{network:<10s}\t{f'{x:.2f}':<15s}\t{f'{z:.2f}':<15s}\t{0.0:<15s}\t{0.0:<15s}\n")
     
     f.close()
                         
