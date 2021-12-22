@@ -42,7 +42,7 @@ def create_stations_file(rec_lims, pos_ini, nsts_x, nsts_z, dest_dir='./DATA'):
             network = "AA"                    # Network station
             
             f.write(
-                f"{st_name:<10s}\t{network:<10s}\t{f'{x:.2f}':<15s}\t{f'{z:.2f}':<15s}\t{str(0.0):<15s}\t{0.0}\n")
+                f"{st_name:<10s} {network:<10s} {f'{x:.2f}':<15s} {f'{z:.2f}':<15s} {str(0.0):<15s} {0.0}\n")
     
     f.close()
                         
