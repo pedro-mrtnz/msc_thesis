@@ -44,7 +44,7 @@ def read_su_seismogram(seismic_traces):
     nr_samples = seismic_traces[0].stats.npts
     dt         = seismic_traces[0].stats.delta
 
-    data_array = np.zeros((nr_samples,nr_traces))
+    data_array = np.zeros((nr_samples, nr_traces))
     time_array = seismic_traces[0].times()
 
     for i in range(nr_traces):
