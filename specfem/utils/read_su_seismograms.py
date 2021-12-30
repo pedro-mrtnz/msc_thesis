@@ -64,8 +64,8 @@ def plot_seis(time, data, vmin_max=False, title='', interpolation=''):
                         extent = extent,
                         title = title,
                         interpolation = interpolation)
-    plt.xlabel('Receiver number')
-    plt.ylabel('Time [s]')
+    plt.ylabel('Receiver number')
+    plt.xlabel('Time [s]')
 
 
 if __name__ == "__main__":
