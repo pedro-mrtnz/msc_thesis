@@ -269,6 +269,7 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     dz = (zmax - zmin)/(nz - 1)
     xi = np.linspace(xmin, xmax, nx)
     zi = np.linspace(zmin, zmax, nz)
+    # Fixme: think about improving the mesh resolution around L_mult, really necessary?
     dom_in_zi = np.zeros_like(zi).astype('int32')
     
     if L_mult is not None:
