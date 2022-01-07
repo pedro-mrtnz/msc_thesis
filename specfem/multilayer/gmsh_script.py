@@ -234,16 +234,19 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, uneven_dict, mres):
         if L_mult is not None:
             # We get the sandwich model
             delta = ztop - zbot
-            L = (delta - L_mult)/2
-            zbot_mult = zbot + L
-            ztop_mult = zbot + L + L_mult
+            L1 = (delta - L_mult)/2
+            L2 = L1
+            zbot_mult = zbot + L1
+            ztop_mult = zbot - L2
         else:
             # We get uneven model
             L_mult = abs(ztop - zbot)
             for v in uneven_dict.values():
                 L_mult -= v
-            zbot_mult = zbot + uneven_dict[list(uneven_dict.keys())[-1]]
-            ztop_mult = ztop + uneven_dict[list(uneven_dict.keys())[-1]] + L_mult
+            uev_dom_ids = list(uneven_dict.keys())
+            L1, L2 = uneven_dict[uev_dom_ids[0]], uneven_dict[uev_dom_ids[1]]
+            zbot_mult = zbot + L1
+            ztop_mult = ztop - L2
 
         gmsh.initialize()
 
@@ -290,9 +293,9 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, uneven_dict, mres):
         surf_bot  = model.geo.addPlaneSurface([cl_bot])
         surf_top  = model.geo.addPlaneSurface([cl_top])
 
-        n_top  = np.ceil(0.65 * L/lc).astype(int) 
+        n_top  = np.ceil(0.65 * L1/lc).astype(int) 
         n_mult = np.ceil(mres * L_mult/lc).astype(int)
-        n_bot  = np.ceil(0.4 * L/lc).astype(int)
+        n_bot  = np.ceil(0.4 * L2/lc).astype(int)
         
         nz = n_top + n_mult + n_bot
         nx = np.ceil((xmax - xmin)/lc).astype(int)
