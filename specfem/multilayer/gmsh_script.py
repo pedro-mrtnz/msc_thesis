@@ -282,12 +282,12 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
         nz = n_top + n_mult + n_bot
         nx = np.ceil((xmax - xmin)/lc).astype(int)
 
-        model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.02)
-        model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.02)
+        model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.01)
+        model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.01)
         model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
         model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
-        model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.02)
-        model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.02)
+        model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.01)
+        model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.01)
 
         model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
         model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
