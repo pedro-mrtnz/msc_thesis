@@ -196,16 +196,19 @@ def create_box_mesh(xmin, xmax, ztop, zbot, lc):
     return mesh, nx, nz
 
 
-def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
+def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, uneven_dict, mres):
     """
     Creates regular box model, but which contains a finer zone. E.g. this finer
     zone is where the multilayer will be defined.
     
     New args:
-        L_mult (float): size of the finer zone of the mesh. If None, then we get 
-                        otherwise regular box grid, with no finer zones. 
-        mres   (float): resolution factor with which increase the resolution in 
-                        multilayer w.r.t. the default L_mult/N resolution.
+        L_mult      (float): size of the finer zone of the mesh. If None, then we get 
+                             to check uneven_dict. 
+        uneven_dict (dict) : dict specifying domain ids along with its sizes. If L_mult
+                             is None, then uneven_dict is checked. If None, weget the 
+                             the otherwise regular box grid, with no finer zones. 
+        mres        (float): resolution factor with which increase the resolution in 
+                             multilayer w.r.t. the default L_mult/N resolution.
     
     Returns: mesh 
     
@@ -224,11 +227,23 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
                 (LB)--------(RB)
         
     """
-    if L_mult is not None:
-        delta = ztop - zbot
-        L = (delta - L_mult)/2
-        zbot_mult = zbot + L
-        ztop_mult = zbot + L + L_mult
+    if L_mult is None and uneven_dict is None:
+        # The otherwise regular grid is obtained
+        return create_box_mesh(xmin, xmax, ztop, zbot, lc)
+    else:
+        if L_mult is not None:
+            # We get the sandwich model
+            delta = ztop - zbot
+            L = (delta - L_mult)/2
+            zbot_mult = zbot + L
+            ztop_mult = zbot + L + L_mult
+        else:
+            # We get uneven model
+            L_mult = abs(ztop - zbot)
+            for v in uneven_dict.values():
+                L_mult -= v
+            zbot_mult = zbot + uneven_dict[list(uneven_dict.keys())[-1]]
+            ztop_mult = ztop + uneven_dict[list(uneven_dict.keys())[-1]] + L_mult
 
         gmsh.initialize()
 
@@ -317,10 +332,6 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, mres):
         os.remove("mesh.msh")
         
         return mesh, nx, nz
-
-    else:
-        # The otherwise regular grid is obtained
-        return create_box_mesh(xmin, xmax, ztop, zbot, lc) 
 
 
 ###################################################################################
