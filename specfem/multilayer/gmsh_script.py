@@ -229,7 +229,7 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
         # The otherwise regular grid is obtained
         return create_box_mesh(xmin, xmax, ztop, zbot, lc)
     else:
-        L1, L_mult, L2  = uneven_dict['1'], uneven_dict['L_mult'], uneven_dict['2']
+        L1, L_mult, L2  = uneven_dict['1'], uneven_dict['L_mult'], uneven_dict['85']
         assert L1 + L_mult + L2 == ztop - zbot, "The sum of the domain ids doesn't amount to the size of the mesh"
         ztop_mult = ztop - L1
         zbot_mult = zbot + L2
@@ -279,7 +279,7 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
         surf_bot  = model.geo.addPlaneSurface([cl_bot])
         surf_top  = model.geo.addPlaneSurface([cl_top])
 
-        n_top  = np.ceil(0.65 * L1/lc).astype(int) 
+        n_top  = np.ceil(0.6 * L1/lc).astype(int) 
         n_mult = np.ceil(mres * L_mult/lc).astype(int)
         n_bot  = np.ceil(0.4 * L2/lc).astype(int)
         
