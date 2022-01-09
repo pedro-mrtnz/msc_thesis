@@ -271,7 +271,7 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     dom_in_zi = np.zeros_like(zi).astype('int32')
     
     if uneven is not None:
-        L_mult = uneven_dict['L_mult']
+        L_mult = uneven['L_mult']
     else:
         # We get multilayer model
         L_mult = zmax - zmin
