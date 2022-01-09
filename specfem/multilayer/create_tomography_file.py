@@ -231,17 +231,15 @@ def create_tomo_1Deven_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=Non
             f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
 
 
-def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, uneven=None, L_mult=None, mesh_res=None, plot=False):
+def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, uneven=None, mesh_res=None, plot=False):
     """
     Generalizes the evenly spaced multilayer. It allows for UNEVEN layers that we have to specify. E.g. if we
-    want the sandwich model, we would need: uneven = {1: 2000.0, 85: 2000.0}. This means that domain ids 1
-    and 85 are 2000m big each. The rest of the multilayer is re-ajusted. 
+    want the sandwich model, we would need: uneven = {1: 2000, L_mult: 500, 85: 2000}. This means that domain ids 1
+    and 85 are 2000m big each. The rest of the multilayer is readjusted.
     
     New args:
         uneven (dict) : dictionary with domain ids as keys and the sizes of those domains as values. If None
                         then we retrieve the evenly spaced multilayer. 
-        L_mult (float): size of the multilayer. It has higher hierarchy than 'uneven', in the sense that if
-                        L_mult = None, the it looks into 'uneven'. 
     """
     if mesh_size is None:
         mesh = meshio.read(glob.glob(os.path.join(path2mesh, '*.msh'))[0])
@@ -272,21 +270,14 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     # Fixme: think about improving the mesh resolution around L_mult, really necessary?
     dom_in_zi = np.zeros_like(zi).astype('int32')
     
-    if L_mult is not None:
-        # We get the usual sandwich model
-        delta = zmax - zmin
-        L = (delta - L_mult)/2
-        uneven = {1: L, len(d2v): L}
-    elif uneven is not None:
-        L_mult = zmax - zmin
-        for v in uneven.values():
-            L_mult -= v
+    if uneven is not None:
+        L_mult = uneven_dict['L_mult']
     else:
         # We get multilayer model
         L_mult = zmax - zmin
         uneven = {}
 
-    N = len(d2v) - len(uneven)
+    N = len(d2v) - (len(uneven) - 1)
     dom_size = L_mult/N 
     dom_intervals = [0.0]
     for dom_id in d2v.keys():
