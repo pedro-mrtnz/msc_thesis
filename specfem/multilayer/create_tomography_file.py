@@ -285,6 +285,7 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         if dom_id in uneven:
             size_ = uneven[dom_id]
         dom_intervals += [dom_intervals[-1] - size_]
+    print(type(dom_id))
     print(dom_intervals)
     
     dom_in_zi = np.zeros_like(zi).astype('int32')
