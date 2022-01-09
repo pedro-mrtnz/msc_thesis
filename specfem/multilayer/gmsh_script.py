@@ -196,17 +196,15 @@ def create_box_mesh(xmin, xmax, ztop, zbot, lc):
     return mesh, nx, nz
 
 
-def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, uneven_dict, mres):
+def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
     """
     Creates regular box model, but which contains a finer zone. E.g. this finer
     zone is where the multilayer will be defined.
     
     New args:
-        L_mult      (float): size of the finer zone of the mesh. If None, then we get 
-                             to check uneven_dict. 
-        uneven_dict (dict) : dict specifying domain ids along with its sizes. If L_mult
-                             is None, then uneven_dict is checked. If None, weget the 
-                             the otherwise regular box grid, with no finer zones. 
+        uneven_dict (dict) : dict specifying domain ids along with its sizes. It also
+                             contains the size of the multilayer L_mult. If None, we get
+                             the otherwise regular grid.  
         mres        (float): resolution factor with which increase the resolution in 
                              multilayer w.r.t. the default L_mult/N resolution.
     
@@ -227,26 +225,14 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, uneven_dict, mres):
                 (LB)--------(RB)
         
     """
-    if L_mult is None and uneven_dict is None:
+    if uneven_dict is None:
         # The otherwise regular grid is obtained
         return create_box_mesh(xmin, xmax, ztop, zbot, lc)
     else:
-        if L_mult is not None:
-            # We get the sandwich model
-            delta = ztop - zbot
-            L1 = (delta - L_mult)/2
-            L2 = L1
-            zbot_mult = zbot + L1
-            ztop_mult = zbot - L2
-        else:
-            # We get uneven model
-            L_mult = abs(ztop - zbot)
-            for v in uneven_dict.values():
-                L_mult -= v
-            uev_dom_ids = list(uneven_dict.keys())
-            L1, L2 = uneven_dict[uev_dom_ids[0]], uneven_dict[uev_dom_ids[1]]
-            zbot_mult = zbot + L1
-            ztop_mult = ztop - L2
+        L1, L_mult, L2  = uneven_dict['1'], uneven_dict['L_mult'], uneven_dict['2']
+        assert L1 + L_mult + L2 == ztop - zbot, "The sum of the domain ids doesn't amount to the size of the mesh"
+        ztop_mult = ztop - L1
+        zbot_mult = zbot + L2
 
         gmsh.initialize()
 
@@ -318,10 +304,7 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, L_mult, uneven_dict, mres):
             'Right' : model.addPhysicalGroup(1, [p2l['rb_p2'], p2l['p2_p3'], p2l['p3_rt']]),
             'Top'   : model.addPhysicalGroup(1, [p2l['rt_lt']]),
             'Left'  : model.addPhysicalGroup(1, [p2l['lt_p4'], p2l['p4_p1'], p2l['p1_lb']]),
-            'M1'    : model.addPhysicalGroup(2, [surf_bot, surf_mult, surf_top]),
-            # 'M1'    : model.addPhysicalGroup(2, [surf_bot]),
-            # 'M2'    : model.addPhysicalGroup(2, [surf_mult]),
-            # 'M3'    : model.addPhysicalGroup(2, [surf_top])
+            'M1'    : model.addPhysicalGroup(2, [surf_bot, surf_mult, surf_top])
         }
         for label, group in collect_physical_groups.items():
             dim = 2 if 'M' == label[0] else 1
