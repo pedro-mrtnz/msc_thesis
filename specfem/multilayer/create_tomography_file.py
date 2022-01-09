@@ -271,12 +271,13 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     
     if uneven is not None:
         L_mult = uneven['L_mult']
+        N = len(d2v) - (len(uneven) - 1)
     else:
         # We get multilayer model
         L_mult = zmax - zmin
         uneven = {}
+    print(uneven)
 
-    N = len(d2v) - (len(uneven) - 1)
     dom_size = L_mult/N 
     dom_intervals = [0.0]
     for dom_id in d2v.keys():
