@@ -268,7 +268,6 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     xi = np.linspace(xmin, xmax, nx)
     zi = np.linspace(zmin, zmax, nz)
     # Fixme: think about improving the mesh resolution around L_mult, really necessary?
-    dom_in_zi = np.zeros_like(zi).astype('int32')
     
     if uneven is not None:
         L_mult = uneven['L_mult']
@@ -285,10 +284,13 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         if dom_id in uneven:
             size_ = uneven[dom_id]
         dom_intervals += [dom_intervals[-1] - size_]
-        
+    print(dom_intervals)
+    
+    dom_in_zi = np.zeros_like(zi).astype('int32')
     for dom_id, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
         mask = (zi <= sup_lim) & (zi >= inf_lim)
         dom_in_zi[mask] = dom_id + 1
+    print(dom_in_zi)
     
     xcoords = []
     zcoords = []
