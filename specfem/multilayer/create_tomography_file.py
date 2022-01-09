@@ -276,23 +276,20 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         # We get multilayer model
         L_mult = zmax - zmin
         uneven = {}
-    print(uneven)
 
-    dom_size = L_mult/N 
+    dom_size = L_mult/N
     dom_intervals = [0.0]
     for dom_id in d2v.keys():
         size_ = dom_size
         if dom_id in uneven:
             size_ = uneven[dom_id]
         dom_intervals += [dom_intervals[-1] - size_]
-    print(type(dom_id))
-    print(dom_intervals)
     
     dom_in_zi = np.zeros_like(zi).astype('int32')
-    for dom_id, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
-        mask = (zi <= sup_lim) & (zi >= inf_lim)
-        dom_in_zi[mask] = dom_id + 1
-    print(dom_in_zi)
+    for i, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
+        mask = (zi <= sup_lim) & (zi > inf_lim)
+        dom_in_zi[mask] = i + 1
+    print(f'\nDOMAINS IN Z-COORDS FROM TOMO FILE:\n {dom_in_zi}')
     
     xcoords = []
     zcoords = []
