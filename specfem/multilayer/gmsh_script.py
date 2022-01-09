@@ -229,7 +229,7 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
         # The otherwise regular grid is obtained
         return create_box_mesh(xmin, xmax, ztop, zbot, lc)
     else:
-        L1, L_mult, L2  = uneven_dict['1'], uneven_dict['L_mult'], uneven_dict['85']
+        L1, L_mult, L2  = uneven_dict[1], uneven_dict['L_mult'], uneven_dict[85]
         assert L1 + L_mult + L2 == ztop - zbot, "The sum of the domain ids doesn't amount to the size of the mesh"
         ztop_mult = ztop - L1
         zbot_mult = zbot + L2
