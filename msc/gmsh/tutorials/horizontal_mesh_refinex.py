@@ -12,7 +12,7 @@ def generate_mesh():
     gmsh.initialize()
     gmsh.model.add("horiz_ref")
     
-    # Siple rectangular geomtry
+    # Simple rectangular geomtry
     lc = .05
     gmsh.model.geo.addPoint(0.0, 0.0, 0.0, lc, 1)
     gmsh.model.geo.addPoint(1.0, 0.0, 0.0, lc, 2)
