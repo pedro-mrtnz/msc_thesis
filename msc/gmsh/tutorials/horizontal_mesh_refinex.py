@@ -1,6 +1,8 @@
 """
 Gmsh script which can serve as inspiration for the multilayer problem.
 """
+import math
+import sys
 import gmsh
 
 def generate_mesh():
@@ -11,7 +13,7 @@ def generate_mesh():
     gmsh.model.add("horiz_ref")
     
     # Siple rectangular geomtry
-    lc = .15
+    lc = .05
     gmsh.model.geo.addPoint(0.0, 0.0, 0.0, lc, 1)
     gmsh.model.geo.addPoint(1.0, 0.0, 0.0, lc, 2)
     gmsh.model.geo.addPoint(1.0, 1.0, 0.0, lc, 3)
@@ -35,7 +37,7 @@ def generate_mesh():
     gmsh.model.geo.synchronize()
     
     gmsh.model.mesh.field.add("Box", 1)
-    gmsh.model.mesh.field.setNumber(1, "VIn", lc / 30)
+    gmsh.model.mesh.field.setNumber(1, "VIn", lc / 10)
     gmsh.model.mesh.field.setNumber(1, "VOut", lc)
     gmsh.model.mesh.field.setNumber(1, "XMin", 0.0)
     gmsh.model.mesh.field.setNumber(1, "XMax", 1.0)
@@ -43,14 +45,13 @@ def generate_mesh():
     gmsh.model.mesh.field.setNumber(1, "YMax", ysup)
     gmsh.model.mesh.field.setNumber(1, "Thickness", 0.3)
     
-    gmsh.model.mesh.setRecombine(2, 6)
+    gmsh.model.mesh.field.setAsBackgroundMesh(1)
     
+    # gmsh.model.mesh.setRecombine(2, 6)
+    gmsh.option.setNumber('Mesh.RecombineAll', 4)
     gmsh.option.setNumber("Mesh.Algorithm", 5)
     gmsh.option.setNumber('Mesh.ElementOrder', 1)
     
     gmsh.model.mesh.generate(2)
     gmsh.write("mesh.msh")
     gmsh.finalize()
-    
-    
-    
