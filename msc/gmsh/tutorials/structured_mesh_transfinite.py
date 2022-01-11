@@ -2,7 +2,7 @@ import gmsh
 import numpy as np
 
 def generate_mesh():
-    lc = 10.0
+    lc = 30.0
     xmin, xmax = 0, 2000
     zmin, zmax = -3000, 0
     
@@ -56,25 +56,40 @@ def generate_mesh():
     surf_bot  = model.geo.addPlaneSurface([cl_bot])
     surf_top  = model.geo.addPlaneSurface([cl_top])
 
-    n_top  = np.ceil(0.5*L1/lc).astype(int) 
-    n_mult = np.ceil(mres * L_mult/lc).astype(int)
-    n_bot  = np.ceil(0.4*L2/lc).astype(int)
+    # n_top  = np.ceil(0.5*L1/lc).astype(int) 
+    # n_mult = np.ceil(mres * L_mult/lc).astype(int)
+    # n_bot  = np.ceil(0.4*L2/lc).astype(int)
     
     # nz = n_top + n_mult + n_bot
     # nx = np.ceil((xmax - xmin)/lc).astype(int)
 
-    model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.0)
-    model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.0)
-    model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
-    model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
-    model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.0)
-    model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.0)
+    # model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.0)
+    # model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.0)
+    # model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
+    # model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
+    # model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.0)
+    # model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.0)
 
-    model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
-    model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
-    model.geo.mesh.setTransfiniteSurface(surf_top, 'Left')
+    # model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
+    # model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
+    # model.geo.mesh.setTransfiniteSurface(surf_top, 'Left')
 
     model.geo.synchronize()
+    
+    model.mesh.field.add("Box", 1)
+    model.mesh.field.setNumber(1, "VIn", lc/3)
+    model.mesh.field.setNumber(1, "VOut", lc)
+    model.mesh.field.setNumber(1, "XMin", xmin)
+    model.mesh.field.setNumber(1, "XMax", xmax)
+    model.mesh.field.setNumber(1, "YMin", zmin_mult)
+    model.mesh.field.setNumber(1, "YMax", zmax_mult)
+    model.mesh.field.setNumber(1, "Thickness", 100)
+    
+    model.mesh.field.setAsBackgroundMesh(1)
+    
+    gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+    gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
+    gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
     
     gmsh.option.setNumber('Mesh.RecombineAll', 1)
     gmsh.option.setNumber('Mesh.Algorithm', 5)

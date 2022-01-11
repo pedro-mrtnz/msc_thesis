@@ -254,8 +254,8 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         zmin, zmax = min(mesh_size[1]), max(mesh_size[1])
     
     if mesh_res is None:
-        nx = np.ceil(np.abs(xmax - xmin)/lc).astype(int)
-        nz = np.ceil(np.abs(zmax - zmin)/lc).astype(int)
+        nx = 250  # np.ceil(3 * np.abs(xmax - xmin)/lc).astype(int)
+        nz = 550  # np.ceil(3 * np.abs(zmax - zmin)/lc).astype(int)
     else:
         nx, nz = mesh_res
         # Fixme: think about the case in which the vertical resolution is not even
@@ -328,7 +328,8 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         f.write(f'{min(vp)} {max(vp)} {min(vs)} {max(vs)} {min(rho)} {max(rho)}\n')
         for j in range(len(xcoords)):
             f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
-
+    
+    return nx, nz
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Creates tomography file and plots it (if desired)')
