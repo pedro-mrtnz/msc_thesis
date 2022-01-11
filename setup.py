@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 setuptools.setup(
-    name = 'specfem',
+    name = 'msc',
     version = '0.1.0',
     description = 'Code used for the MSc thesis',
     long_description = long_description,
