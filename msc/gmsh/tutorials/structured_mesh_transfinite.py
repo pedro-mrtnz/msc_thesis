@@ -56,36 +56,29 @@ def generate_mesh():
     surf_bot  = model.geo.addPlaneSurface([cl_bot])
     surf_top  = model.geo.addPlaneSurface([cl_top])
 
-    n_top  = np.ceil(L1/lc).astype(int) 
+    n_top  = np.ceil(0.5*L1/lc).astype(int) 
     n_mult = np.ceil(mres * L_mult/lc).astype(int)
-    n_bot  = np.ceil(L2/lc).astype(int)
+    n_bot  = np.ceil(0.4*L2/lc).astype(int)
     
     # nz = n_top + n_mult + n_bot
     # nx = np.ceil((xmax - xmin)/lc).astype(int)
 
-    model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.01)
-    model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.01)
+    model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.0)
+    model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.0)
     model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
     model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
-    model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.01)
-    model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.01)
+    model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.0)
+    model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.0)
 
     model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
     model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
     model.geo.mesh.setTransfiniteSurface(surf_top, 'Left')
 
-    gmsh.model.geo.synchronize()
-
-    # collect_physical_groups = {
-    #     'Bottom': model.addPhysicalGroup(1, [p2l['lb_rb']]),
-    #     'Right' : model.addPhysicalGroup(1, [p2l['rb_p2'], p2l['p2_p3'], p2l['p3_rt']]),
-    #     'Top'   : model.addPhysicalGroup(1, [p2l['rt_lt']]),
-    #     'Left'  : model.addPhysicalGroup(1, [p2l['lt_p4'], p2l['p4_p1'], p2l['p1_lb']]),
-    #     'M1'    : model.addPhysicalGroup(2, [surf_bot, surf_mult, surf_top])
-    # }
-    # for label, group in collect_physical_groups.items():
-    #     dim = 2 if 'M' == label[0] else 1
-    #     model.setPhysicalName(dim, group, label)
+    model.geo.synchronize()
+    
+    gmsh.option.setNumber('Mesh.RecombineAll', 1)
+    gmsh.option.setNumber('Mesh.Algorithm', 5)
+    gmsh.option.setNumber('Mesh.ElementOrder', 1)
 
     gmsh.model.mesh.generate(dim=2)
     gmsh.write("mesh.msh")
