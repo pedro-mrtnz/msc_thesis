@@ -59,7 +59,7 @@ def generate_mesh():
     # We could also combine MathEval with values coming from other fields. For example,
     # let's define a 'Distance' field around point 1.
     gmsh.model.mesh.field.add('Distance', 4)
-    gmsh.model.mesh.field.setNumbers(4, 'PointList', [1])
+    gmsh.model.mesh.field.setNumbers(4, 'PointsList', [1])
 
     # We can create a 'MathEval' field with a function that depends on the return value
     # of the Distance field 4. i.e., depending on the distance to point 1 (here using a
@@ -120,7 +120,9 @@ def generate_mesh():
     # better - in particular size fields with large element size gradients:
 
     gmsh.option.setNumber("Mesh.Algorithm", 5)
+    # gmsh.option.setNumber('Mesh.RecombineAll', 1)
+    gmsh.option.setNumber('Mesh.ElementOrder', 1)
 
     gmsh.model.mesh.generate(2)
-    gmsh.write("local_ref.msh")
+    gmsh.write("mesh.msh")
     gmsh.finalize()
