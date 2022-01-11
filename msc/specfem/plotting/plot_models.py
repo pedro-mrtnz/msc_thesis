@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 import pandas as pd
-import specfem.plotting.nice_plot as nplt
+import msc.specfem.plotting.nice_plot as nplt
 from scipy.io import FortranFile
 
 

@@ -4,7 +4,7 @@ import argparse
 from obspy import read
 import matplotlib.pyplot as plt
 import numpy as np
-import specfem.plotting.nice_plot as nplt
+import msc.specfem.plotting.nice_plot as nplt
 
 def parse_args():
     """ This function run argparse (see
