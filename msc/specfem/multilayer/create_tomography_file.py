@@ -64,8 +64,8 @@ import pandas as pd
 import meshio
 import matplotlib.pyplot as plt
 
-import specfem.plotting.nice_plot as nplt
-from specfem.plotting.plot_models import grid
+import msc.specfem.plotting.nice_plot as nplt
+from msc.specfem.plotting.plot_models import grid
 
 
 class ConfigPlots:
