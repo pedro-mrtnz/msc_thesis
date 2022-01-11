@@ -305,6 +305,7 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
             collect_fields['rho'].append(df_['rho'])
     
     assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'    
+    
     if plot:
         # One or more fields can be plotted
         field_name = ConfigPlots.sel_field
