@@ -10,6 +10,9 @@ from msc.specfem.utils.read_su_seismograms import read_su_seismogram
 from msc.specfem.utils.nmo_correction import nmo_correction
 
 def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict: dict, verbose=True):
+    """
+    Run the NMO correction on the multilayer data. 
+    """
     s_traces = obspy.read(
         glob.glob(os.path.join(path2output_files, 'Uz_*.su'))[0])
     time, data = read_su_seismogram(s_traces)
