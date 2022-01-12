@@ -25,12 +25,14 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
     offsets = stations[2]  # Offsets along X only (Z cte.)
 
     if verbose:
-        print(f"dt = {dt} s")
-        print(f"N samples = {n_samples}")
-        print(f"Simul time = {dt * n_samples} s")
-        print(f"N offsets = {n_offsets}")
-        print(f"(min, max) offset pos = {min(offsets)}, {max(offsets)} m")
-
+        print("\nTRACES INFO:")
+        print(f"  dt = {dt} s")
+        print(f"  N samples = {n_samples}")
+        print(f"  Simul time = {dt * n_samples} s")
+        print(f"  N offsets = {n_offsets}")
+        print(f"  (min, max) offset pos = {min(offsets)}, {max(offsets)} m")
+        print(" ")
+        
     # Normal coordinates: receiver right on top of the source
     source_fname = os.path.join(path2output_files, 'SOURCE')
     with open(source_fname, 'r') as f:
@@ -42,15 +44,18 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
                 zs = float(l.split('=')[1].split('#')[0].strip())
     
     x_offsets = offsets - xs
-
-    L_mult = uneven_dict['L_mult']
+    
     zmin, zmax = zmin_max
+    if uneven_dict is not None:
+        L_mult = uneven_dict['L_mult']
+    else:
+        L_mult = zmax - zmin
     nz = n_samples
     dz = (zmax - zmin)/(nz - 1)
     zi = np.linspace(zmax, zmin, nz)
 
     d2v = read_material_file(path2mesh)[0]
-    N = len(d2v) - 2
+    N = len(d2v) - 2 if uneven_dict is not None else len(d2v)
     dom_size = L_mult/N
     dom_intervals = [0.0]
     for dom_id in d2v.keys():
@@ -84,4 +89,13 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
     elapsed_time = t.time() - start
     print(f"NMO-correction took {elapsed_time} seconds")
     
-    return nmo
+    collect_results = {
+        'cmp'      : data,
+        'nmo'      : nmo,
+        'time'     : time,
+        'nmo_times': np.array(nmo_times),
+        'nmo_vels' : np.array(nmo_vels),
+        'x_offsets': x_offsets
+    }
+    
+    return collect_results
