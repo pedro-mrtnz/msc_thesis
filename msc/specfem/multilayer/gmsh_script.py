@@ -376,7 +376,7 @@ def get_materials(path2refl, rho_ini, vp_ini, verbose=True):
         f.write(f"{domain_id} {mat_id} {rho_ini:.2f} {vp_ini:.2f} {vs} {0} {0} {Q_kappa} {Q_mu} 0 0 0 0 0 0\n")
         for R in refls:
             rho_new = np.sqrt(-(R + 1)/(R - 1) * vp_ini * rho_ini / alpha)
-            vp_new  = alpha * rho_new + 200
+            vp_new  = alpha * rho_new + 400
             domain_id += 1
             f.write(f"{domain_id} {mat_id} {rho_new:.2f} {vp_new:.2f} {vs} {0} {0} {Q_kappa} {Q_mu} 0 0 0 0 0 0\n")
             
