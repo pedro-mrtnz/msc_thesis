@@ -87,7 +87,7 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
     start = t.time()
     nmo = nmo_correction(data, dt, x_offsets, nmo_vels)
     elapsed_time = t.time() - start
-    print(f"NMO-correction took {elapsed_time} seconds")
+    print(f"NMO-correction took {elapsed_time/60:.3f} mins")
     
     collect_results = {
         'cmp'      : data,

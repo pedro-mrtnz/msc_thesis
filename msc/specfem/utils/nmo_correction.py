@@ -82,7 +82,7 @@ def nmo_correction(cmp, dt, offsets, velocities):
 
     return nmo
 
-def plot_cmp(cmp_data, time, t0, x_offsets, vnmo):
+def plot_cmp(cmp_data, time, t0, x_offsets, vnmo, axs=None):
     """
     Plot CMP data (not-corrected) with instance of reflected times for a given t0.
 
@@ -95,8 +95,11 @@ def plot_cmp(cmp_data, time, t0, x_offsets, vnmo):
     """
     refl_times = reflection_time(t0=t0, x=x_offsets, vnmo=vnmo)
     
-    fig = plt.figure(figsize=ConfigPlots.fig_size)
-    ax = fig.add_subplot(111)
+    if axs is None:
+        fig = plt.figure(figsize=ConfigPlots.fig_size)
+        ax = fig.add_subplot(111)
+    else:
+        ax = axs
     vmin_max = np.percentile(cmp_data, 99.)
     extent = [1, cmp_data.shape[1], time[-1], time[0]]
     ax.imshow(
@@ -106,17 +109,21 @@ def plot_cmp(cmp_data, time, t0, x_offsets, vnmo):
         vmin = -vmin_max,
         vmax = vmin_max,
         interpolation = ConfigPlots.interpolation,
-        exten = extent
+        extent = extent
     )
     ax.plot(np.arange(1, len(x_offsets)+1), refl_times, '-r', lw=3)
     ax.set(xlabel='Receiver number', ylabel='TWT [s]')
+    if axs is None: plt.show()
     
-def plot_nmo(nmo_data, time):
+def plot_nmo(nmo_data, time, axs=None):
     """ 
     Plot the NMO corrected data.
     """
-    fig = plt.figure(figsize=ConfigPlots.fig_size)
-    ax = fig.add_subplot(111)
+    if axs is None:
+        fig = plt.figure(figsize=ConfigPlots.fig_size)
+        ax = fig.add_subplot(111)
+    else:
+        ax = axs
     vmin_max = np.percentile(nmo_data, 99.)
     extent = [1, nmo_data.shape[1], time[-1], time[0]]
     ax.imshow(
@@ -126,6 +133,8 @@ def plot_nmo(nmo_data, time):
         vmin = -vmin_max,
         vmax = vmin_max,
         interpolation = ConfigPlots.interpolation,
-        exten = extent
+        extent = extent
     )
     ax.set(xlabel='Receiver number', ylabel='TWT [s]')
+    if axs is None: plt.show()
+    
