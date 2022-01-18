@@ -279,40 +279,40 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
         surf_bot  = model.geo.addPlaneSurface([cl_bot])
         surf_top  = model.geo.addPlaneSurface([cl_top])
 
-        # n_top  = np.ceil(0.6 * L1/lc).astype(int) 
-        # n_mult = np.ceil(mres * L_mult/lc).astype(int)
-        # n_bot  = np.ceil(0.4 * L2/lc).astype(int)
+        n_top  = np.ceil(0.6 * L1/lc).astype(int) 
+        n_mult = np.ceil(mres * L_mult/lc).astype(int)
+        n_bot  = np.ceil(0.4 * L2/lc).astype(int)
         
-        # nz = n_top + n_mult + n_bot
-        # nx = np.ceil((xmax - xmin)/lc).astype(int)
+        nz = n_top + n_mult + n_bot
+        nx = np.ceil((xmax - xmin)/lc).astype(int)
 
-        # model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.01)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.01)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.01)
-        # model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.01)
+        model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.01)
+        model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.01)
+        model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
+        model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
+        model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.01)
+        model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.01)
 
-        # model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
-        # model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
-        # model.geo.mesh.setTransfiniteSurface(surf_top, 'Left')
+        model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
+        model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
+        model.geo.mesh.setTransfiniteSurface(surf_top, 'Left')
 
         model.geo.synchronize()
         
-        model.mesh.field.add("Box", 1)
-        model.mesh.field.setNumber(1, "VIn", lc/2)
-        model.mesh.field.setNumber(1, "VOut", lc)
-        model.mesh.field.setNumber(1, "XMin", xmin)
-        model.mesh.field.setNumber(1, "XMax", xmax)
-        model.mesh.field.setNumber(1, "YMin", zbot_mult)
-        model.mesh.field.setNumber(1, "YMax", ztop_mult)
-        model.mesh.field.setNumber(1, "Thickness", 200)
+        # model.mesh.field.add("Box", 1)
+        # model.mesh.field.setNumber(1, "VIn", lc/2)
+        # model.mesh.field.setNumber(1, "VOut", lc)
+        # model.mesh.field.setNumber(1, "XMin", xmin)
+        # model.mesh.field.setNumber(1, "XMax", xmax)
+        # model.mesh.field.setNumber(1, "YMin", zbot_mult)
+        # model.mesh.field.setNumber(1, "YMax", ztop_mult)
+        # model.mesh.field.setNumber(1, "Thickness", 200)
 
-        model.mesh.field.setAsBackgroundMesh(1)
+        # model.mesh.field.setAsBackgroundMesh(1)
 
-        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
-        gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
-        gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+        # gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+        # gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
+        # gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 
         gmsh.option.setNumber('Mesh.RecombineAll', 1)
         gmsh.option.setNumber('Mesh.Algorithm', 5)
@@ -376,7 +376,7 @@ def get_materials(path2refl, rho_ini, vp_ini, verbose=True):
         f.write(f"{domain_id} {mat_id} {rho_ini:.2f} {vp_ini:.2f} {vs} {0} {0} {Q_kappa} {Q_mu} 0 0 0 0 0 0\n")
         for R in refls:
             rho_new = np.sqrt(-(R + 1)/(R - 1) * vp_ini * rho_ini / alpha)
-            vp_new  = alpha * rho_new + 200
+            vp_new  = alpha * rho_new + 400
             domain_id += 1
             f.write(f"{domain_id} {mat_id} {rho_new:.2f} {vp_new:.2f} {vs} {0} {0} {Q_kappa} {Q_mu} 0 0 0 0 0 0\n")
             
