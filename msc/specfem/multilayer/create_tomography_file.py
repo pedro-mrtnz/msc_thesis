@@ -254,8 +254,8 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         zmin, zmax = min(mesh_size[1]), max(mesh_size[1])
     
     if mesh_res is None:
-        nx = 250  # np.ceil(3 * np.abs(xmax - xmin)/lc).astype(int)
-        nz = 550  # np.ceil(3 * np.abs(zmax - zmin)/lc).astype(int)
+        nx = int(250)  # np.ceil(3 * np.abs(xmax - xmin)/lc).astype(int)
+        nz = int(550)  # np.ceil(3 * np.abs(zmax - zmin)/lc).astype(int)
     else:
         nx, nz = mesh_res
         # Fixme: think about the case in which the vertical resolution is not even
@@ -265,8 +265,8 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     # Interpolating axis
     dx = (xmax - xmin)/(nx - 1)
     dz = (zmax - zmin)/(nz - 1)
-    xi = np.linspace(xmin, xmax, nx)
-    zi = np.linspace(zmin, zmax, nz)
+    xi = np.linspace(xmin, xmax, nx).astype('float32')
+    zi = np.linspace(zmin, zmax, nz).astype('float32')
     # Fixme: think about improving the mesh resolution around L_mult, really necessary?
     
     if uneven is not None:
@@ -274,20 +274,22 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
         N = len(d2v) - (len(uneven) - 1)
     else:
         # We get multilayer model
-        L_mult = zmax - zmin
         uneven = {}
+        L_mult = zmax - zmin
+        N = len(d2v)
 
-    dom_size = L_mult/N
+    dom_size = np.float32(L_mult/N)
     dom_intervals = [0.0]
     for dom_id in d2v.keys():
         size_ = dom_size
         if dom_id in uneven:
             size_ = uneven[dom_id]
         dom_intervals += [dom_intervals[-1] - size_]
+    dom_intervals[-1] = zmin
     
     dom_in_zi = np.zeros_like(zi).astype('int32')
     for i, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
-        mask = (zi <= sup_lim) & (zi > inf_lim)
+        mask = (zi <= sup_lim) & (zi >= inf_lim)
         dom_in_zi[mask] = i + 1
     print(f'\nDOMAINS IN Z-COORDS FROM TOMO FILE:\n {dom_in_zi}')
     
@@ -300,9 +302,9 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
             df_ = d2v[dom_id]  # pd.Series
             xcoords.append(xval)
             zcoords.append(zval)
-            collect_fields['vp'].append(df_['vp'])
-            collect_fields['vs'].append(df_['vs'])
-            collect_fields['rho'].append(df_['rho'])
+            collect_fields['vp'].append(np.float32(df_['vp']))
+            collect_fields['vs'].append(np.float32(df_['vs']))
+            collect_fields['rho'].append(np.float32(df_['rho']))
     
     assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'    
     

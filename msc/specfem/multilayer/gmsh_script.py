@@ -151,49 +151,55 @@ def create_box_mesh(xmin, xmax, ztop, zbot, lc):
     serves as a background onto which define the different domains using
     the tomography file. I.e. no sharp boundaries.
     """
-    geom = pygmsh.geo.Geometry()
-    model = geom.__enter__()
-    
-    # Set some meshing options
-    gmsh.option.setNumber('Mesh.RecombineAll', 1) 
-    gmsh.option.setNumber('Mesh.Algorithm', 8)    
-    gmsh.option.setNumber('Mesh.ElementOrder', 1)
+    gmsh.initialize()
+    model = gmsh.model
 
-    # corners = [
-    #     model.add_point([xmin, zbot, 0], lc),
-    #     model.add_point([xmax, zbot, 0], lc),
-    #     model.add_point([xmax, ztop, 0], lc),
-    #     model.add_point([xmin, ztop, 0], lc)   
-    # ]
+    corners = [
+        model.geo.addPoint(xmin, zbot, 0, lc),
+        model.geo.addPoint(xmax, zbot, 0, lc),
+        model.geo.addPoint(xmax, ztop, 0, lc),
+        model.geo.addPoint(xmin, ztop, 0, lc)
+    ]
     
-    # lines = []  # [bottom, right, top, left]
-    # for pt1, pt2 in zip(corners, corners[1:] + [corners[0]]):
-    #     lines.append(model.add_line(pt1, pt2))
-    # curve_l = model.add_curve_loop(lines)
-    # surface = model.add_plane_surface(curve_l)
-    
-    # model.synchronize()
+    lines = []  # [bottom, right, top, left]
+    for pt1, pt2 in zip(corners, corners[1:] + [corners[0]]):
+        lines.append(model.geo.addLine(pt1, pt2))
+    curve_l = model.geo.addCurveLoop(lines)
+    surface = model.geo.addPlaneSurface([curve_l])
     
     nx = np.ceil((xmax - xmin)/lc).astype(int)
     nz = np.ceil((ztop - zbot)/lc).astype(int)
     
-    rect = model.add_rectangle(xmin, xmax, zbot, ztop, 0, lc)
-    surface = rect.surface
+    model.geo.mesh.setTransfiniteCurve(lines[1], nz)
+    model.geo.mesh.setTransfiniteCurve(lines[3], nz)
+    model.geo.mesh.setTransfiniteSurface(surface, 'Left')
     
-    boundaries = ['Bottom', 'Right', 'Top', 'Left']
-    for line, boundary in zip(rect.lines, boundaries):
-        model.add_physical(line, label=boundary)
-    model.add_physical(surface, label='M1')
+    model.geo.synchronize()
     
-    geom.generate_mesh(dim=2, verbose=True)
-    gmsh.write('nan.msh')
-    gmsh.clear()
-    geom.__exit__()
+    # Set some meshing options
+    gmsh.option.setNumber('Mesh.RecombineAll', 1)
+    gmsh.option.setNumber('Mesh.Algorithm', 6)
+    gmsh.option.setNumber('Mesh.ElementOrder', 1)
     
-    mesh = meshio.read('nan.msh')
-    os.remove('nan.msh')
+    collect_physical_groups = {
+        'Bottom': model.addPhysicalGroup(1, [lines[0]]),
+        'Right' : model.addPhysicalGroup(1, [lines[1]]),
+        'Top'   : model.addPhysicalGroup(1, [lines[2]]),
+        'Left'  : model.addPhysicalGroup(1, [lines[3]]),
+        'M1'    : model.addPhysicalGroup(2, [surface])
+    }
+    for label, group in collect_physical_groups.items():
+        dim = 2 if 'M' == label[0] else 1
+        model.setPhysicalName(dim, group, label)
     
-    return mesh, nx, nz
+    gmsh.model.mesh.generate(dim=2)
+    gmsh.write("mesh.msh")
+    gmsh.finalize()
+    
+    mesh = meshio.read("mesh.msh")
+    os.remove("mesh.msh")
+    
+    return mesh  #, nx, nz
 
 
 def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
@@ -235,12 +241,6 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
         zbot_mult = zbot + L2
 
         gmsh.initialize()
-
-        gmsh.option.setNumber('Mesh.RecombineAll', 1) 
-        gmsh.option.setNumber('Mesh.Algorithm', 6)    
-        gmsh.option.setNumber('Mesh.ElementOrder', 1)
-        # gmsh.option.setNumber('Mesh.Smoothing', 100)
-
         model = gmsh.model
 
         lb = model.geo.addPoint(xmin, zbot, 0, lc)  # Left bottom
@@ -279,19 +279,20 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
         surf_bot  = model.geo.addPlaneSurface([cl_bot])
         surf_top  = model.geo.addPlaneSurface([cl_top])
 
-        n_top  = np.ceil(0.6 * L1/lc).astype(int) 
+        n_top  = np.ceil(L1/lc).astype(int) 
         n_mult = np.ceil(mres * L_mult/lc).astype(int)
-        n_bot  = np.ceil(0.4 * L2/lc).astype(int)
+        n_bot  = np.ceil(L2/lc).astype(int)
         
         nz = n_top + n_mult + n_bot
         nx = np.ceil((xmax - xmin)/lc).astype(int)
 
-        model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -1.01)
-        model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', 1.01)
+        p_factor = 1.075
+        model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -p_factor)
+        model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', p_factor)
         model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
         model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
-        model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', 1.01)
-        model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -1.01)
+        model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', p_factor)
+        model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -p_factor)
 
         model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
         model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
@@ -366,7 +367,7 @@ def get_materials(path2refl, rho_ini, vp_ini, verbose=True):
         print(f"{'  Material ID': <15} = {mat_id}")
         print(f"{'  Cte vp-rho': <15} = {alpha}")
         
-    alpha = 1.5
+    alpha = 1.8
     refls = np.loadtxt(path2refl)
     if not os.path.exists('MESH/'):
         os.system('mkdir -p MESH/')
@@ -376,7 +377,7 @@ def get_materials(path2refl, rho_ini, vp_ini, verbose=True):
         f.write(f"{domain_id} {mat_id} {rho_ini:.2f} {vp_ini:.2f} {vs} {0} {0} {Q_kappa} {Q_mu} 0 0 0 0 0 0\n")
         for R in refls:
             rho_new = np.sqrt(-(R + 1)/(R - 1) * vp_ini * rho_ini / alpha)
-            vp_new  = alpha * rho_new - 200
+            vp_new  = alpha * rho_new
             domain_id += 1
             f.write(f"{domain_id} {mat_id} {rho_new:.2f} {vp_new:.2f} {vs} {0} {0} {Q_kappa} {Q_mu} 0 0 0 0 0 0\n")
             
