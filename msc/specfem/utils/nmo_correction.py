@@ -1,11 +1,18 @@
+"""
+NORMAL MOVE-OUT CORRECTION USING REFLECTION TIMES AND INTERPOLATION.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from tqdm import *
 from scipy import interpolate
 
 class ConfigPlots:
     aspect        = 'auto'
-    cmap          = 'Greys'
+    colors_cmap   = ['cyan', 'darkturquoise', 'blue', 'steelblue', 'lightgrey', 'slategray', 'red', 'gold', 'yellow']
+    nodes         = [0.0, 0.1, .3, .42, .5, .58, .7, 0.9, 1.0]
+    cmap          = colors.LinearSegmentedColormap.from_list('mycmap', list(zip(nodes,colors_cmap)))  # 'Greys'
     interpolation = 'none'
     fig_size      = (8,8)
 
@@ -82,6 +89,7 @@ def nmo_correction(cmp, dt, offsets, velocities):
 
     return nmo
 
+
 def plot_cmp(cmp_data, time, t0, x_offsets, vnmo, axs=None):
     """
     Plot CMP data (not-corrected) with instance of reflected times for a given t0.
@@ -111,9 +119,10 @@ def plot_cmp(cmp_data, time, t0, x_offsets, vnmo, axs=None):
         interpolation = ConfigPlots.interpolation,
         extent = extent
     )
-    ax.plot(np.arange(1, len(x_offsets)+1), refl_times, '-r', lw=3)
+    ax.plot(np.arange(1, len(x_offsets)+1), refl_times, '-w', lw=3)
     ax.set(xlabel='Receiver number', ylabel='TWT [s]')
     if axs is None: plt.show()
+    
     
 def plot_nmo(nmo_data, time, axs=None):
     """ 

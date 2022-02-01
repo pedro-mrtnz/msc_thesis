@@ -9,9 +9,10 @@ from msc.specfem.multilayer.create_tomography_file import read_material_file
 from msc.specfem.utils.read_su_seismograms import read_su_seismogram
 from msc.specfem.utils.nmo_correction import nmo_correction
 
-def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict: dict, verbose=True):
+
+def fetch_data(path2output_files: str, verbose: bool):
     """
-    Run the NMO correction on the multilayer data. 
+    Fetch data from forward time simulations.
     """
     s_traces = obspy.read(
         glob.glob(os.path.join(path2output_files, 'Uz_*.su'))[0])
@@ -19,11 +20,11 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
     dt = s_traces[0].stats.delta
     n_samples = data.shape[0]
     n_offsets = data.shape[1]
-
+    
     stations = pd.read_csv(os.path.join(
         path2output_files, 'STATIONS'), header=None, delim_whitespace=True)
     offsets = stations[2]  # Offsets along X only (Z cte.)
-
+    
     if verbose:
         print("\nTRACES INFO:")
         print(f"  dt = {dt} s")
@@ -32,6 +33,16 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
         print(f"  N offsets = {n_offsets}")
         print(f"  (min, max) offset pos = {min(offsets)}, {max(offsets)} m")
         print(" ")
+        
+    return data, time, dt, offsets
+    
+
+def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict: dict, verbose=True):
+    """
+    Run the NMO correction on the multilayer data. 
+    """
+    data, time, dt, offsets = fetch_data(path2output_files, verbose)
+    n_samples = data.shape[0]
         
     # Normal coordinates: receiver right on top of the source
     source_fname = os.path.join(path2output_files, 'SOURCE')

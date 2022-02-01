@@ -1,6 +1,11 @@
+""" 
+DYNAMIC TIME WARPING FOR NORMAL MOVE-OUT CORRECTION.
+"""
+
 import warnings
 import numpy as np
 from numba import njit, prange
+from tqdm import *
 
 GLOBAL_CONSTRAINT_CODE = {None: 0, "": 0, "itakura": 1, "sakoe_chiba": 2}
 
@@ -139,9 +144,9 @@ def dtw_path(s1, s2, global_constraint=None, sakoe_chiba_radius=None, itakura_ma
     and returns both the path and the similarity. 
 
     Args:
-        s1                (1D array)      : time series. Shape (sz1,).
-        s2                (1D array)      : time series. Shape (sz2,).
-        global_constraint (str or None)   : global constraint to restrict admissible
+        s1                 (1D array)     : time series. Shape (sz1,).
+        s2                 (1D array)     : time series. Shape (sz2,).
+        global_constraint  (str or None)  : global constraint to restrict admissible
                                             paths for DTW. Strings can be "itakura" or
                                             "sakoe_chiba". Defaults to None.
         sakoe_chiba_radius (int or None)  : radius to be used for Sakoe-Chiba band global
@@ -164,7 +169,7 @@ def dtw_path(s1, s2, global_constraint=None, sakoe_chiba_radius=None, itakura_ma
     s2 = to_time_series(s2, remove_nans=True)
     if len(s1) == 0 or len(s2) == 0:
         raise ValueError("One of the input time series contains only NaNs or has zero length.")
-    if s1.shape[0] != s2.shape[1]:
+    if s1.shape[1] != s2.shape[1]:
         raise ValueError("All input time series must have the same feature size.")
 
     mask = compute_mask(
@@ -185,9 +190,9 @@ def compute_mask(s1, s2, global_constraint=0, sakoe_chiba_radius=None, itakura_m
     Computes the mask (region constraint).
 
     Args:
-        s1                (1D array)      : time series. Shape (sz1,).
-        s2                (1D array)      : time series. Shape (sz2,).
-        global_constraint (int or None)   : global constraint to restrict admissible
+        s1                 (1D array)     : time series. Shape (sz1,).
+        s2                 (1D array)     : time series. Shape (sz2,).
+        global_constraint  (int or None)  : global constraint to restrict admissible
                                             paths for DTW. Integers can be
                                             - 1 for "itakura"
                                             - 2 for "sakoe_chiba"
@@ -333,7 +338,7 @@ def get_dtw_matrix(s, t):
     
     return dtw_matrix
 
-def get_dtw_matrix2(s, t, w):
+def get_dtw_matrix_window(s, t, w):
     n, m = len(s), len(t)
     w = np.max([w, abs(n-m)])
     dtw_matrix = np.inf * np.ones((n+1, m+1))
