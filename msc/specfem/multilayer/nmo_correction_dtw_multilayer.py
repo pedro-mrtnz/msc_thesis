@@ -57,7 +57,6 @@ def run_nmo_dtw(path2output_files: str, verbose=True):
     Runs NMO correction on the multilayer using DTW (Dynamic Time Warping).
     """
     data, time, dt, offsets = fetch_data(path2output_files, verbose)
-    n_samples = data.shape[0]
     n_offsets = data.shape[1]
     
     # Normal coordinates: receiver right on top of the source
@@ -86,14 +85,16 @@ def run_nmo_dtw(path2output_files: str, verbose=True):
         for i, j in path_L:
             data_dtw[i, 2*mid-k] = data[j, 2*mid-k]
     
-    elapsed_time = t.time() - time
+    elapsed_time = t.time() - start_t
     print(f"Elapsed time: {elapsed_time/60:.3f} mins")
     
     collect_results = {
         'cmp'      : data,
         'nmo'      : data_dtw, 
         'time'     : time, 
-        'x_offsets': x_offsets
+        'dt'       : dt, 
+        'x_offsets': x_offsets,
+        'mid_trace': mid_trace
     }
     
     return collect_results
