@@ -392,7 +392,7 @@ def get_materials(path2refl, rho_ini, vp_ini, verbose=True):
 
 def process_gmsh(mesh, filename='model'):
     """
-    Here we run the mesh in a amenable way for SPECFEM to process it.
+    Here we run the mesh in an amenable way for SPECFEM to process it.
     
     ! Fixme: BOUNDARY CONDITIONS?
     ! Fixme: INCLUDE HERE THE MATERIAL FILES?

@@ -77,9 +77,9 @@ def run_nmo_dtw(path2output_files: str, verbose=True):
     start_t = t.time()
     print('\nRUNNING DTW-NMO CORRECTION')
     data_dtw = data.copy()
-    for k in tqdm(range(mid+1, n_offsets)):
-        path_R, = dtw_path(data_dtw[:, k-1], data_dtw[:, k])
-        path_L, = dtw_path(data_dtw[:, 2*mid-(k-1)], data_dtw[:, 2*mid-k])
+    for k in tqdm(range(mid+1, n_offsets), total=n_offsets-mid-1):
+        path_R, _ = dtw_path(data_dtw[:, k-1], data_dtw[:, k])
+        path_L, _ = dtw_path(data_dtw[:, 2*mid-(k-1)], data_dtw[:, 2*mid-k])
         for i, j in path_R:
             data_dtw[i, k] = data[j, k]
         for i, j in path_L:
@@ -89,7 +89,7 @@ def run_nmo_dtw(path2output_files: str, verbose=True):
     print(f"Elapsed time: {elapsed_time/60:.3f} mins")
     
     collect_results = {
-        'cmp'      : data,
+        'cmp'      : data, 
         'nmo'      : data_dtw, 
         'time'     : time, 
         'dt'       : dt, 

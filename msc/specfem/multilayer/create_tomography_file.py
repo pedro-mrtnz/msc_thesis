@@ -1,6 +1,6 @@
 """
 EXAMPLE OF EXTERNAL VELOCITY MODEL
-Build !D velocity model and write it in ASCII tomo file that can be read by SPECFEM2D. It is 1D in the sense that the 
+Build 1D velocity model and write it in ASCII tomo file that can be read by SPECFEM2D. It is 1D in the sense that the 
 velocity depends only on the depth (vertical axis).
 
 We use the TOMOGRAPHY_FILE in order to create an arbitrary velocity model. Within the Par_file, 
@@ -144,7 +144,8 @@ def plot_field(x, z, field, field_name, res=ConfigPlots.res, interp_method=Confi
 
 
 def create_tomo_1Deven_file(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc=10.0, mesh_res=None, plot=False):
-    """ Writes down the .xyz file which wraps up the 1D velocity and density model of the MULTILAYER. It is 1D in the sense
+    """ 
+    Writes down the .xyz file which wraps up the 1D velocity and density model of the MULTILAYER. It is 1D in the sense
     that depends only on the z direction. This model has EVENLY SPACED LAYERS. 
     
     NB: a more general model where you can specify which layers are UNEVEN is implemented further on.
