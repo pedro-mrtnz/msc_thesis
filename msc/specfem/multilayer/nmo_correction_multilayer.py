@@ -74,7 +74,7 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
         if dom_id in uneven_dict:
             size_ = uneven_dict[dom_id]
         dom_intervals += [dom_intervals[-1] - size_]
-
+    
     dom_in_zi = np.zeros_like(zi).astype('int32')
     for i, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
         mask = (zi <= sup_lim) & (zi >= inf_lim)
