@@ -54,9 +54,13 @@ def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfig
                             cmap = cmap, 
                             shading = 'auto')
     else:
-        im = axs.imshow(image, cmap=cmap, aspect=aspect, vmin=vmin, vmax=vmax, interpolation=interpolation, extent=extent)
+        if newfigure:
+            im = axs.imshow(image, cmap=cmap, aspect=aspect, vmin=vmin, vmax=vmax, interpolation=interpolation, extent=extent)
+        else:
+            im = plt.imshow(image, cmap=cmap, aspect=aspect, vmin=vmin,
+                            vmax=vmax, interpolation=interpolation, extent=extent)
     
-    if colorbar:
+    if colorbar and newfigure:
         cbar = fig.colorbar(im, aspect=40, pad=0.0, label=cbar_label, orientation='horizontal')
     
     if save:
