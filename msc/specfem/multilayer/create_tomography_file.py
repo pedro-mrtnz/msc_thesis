@@ -296,7 +296,7 @@ def create_tomo_1Dfile(path2mesh='./MESH', dest_dir='./DATA', mesh_size=None, lc
     
     xcoords = []
     zcoords = []
-    collect_fields = {'vp': [], 'vs': [], 'rho': []}    
+    collect_fields = {'vp': [], 'vs': [], 'rho': []}
     for i, zval in enumerate(zi):
         for xval in xi:
             dom_id = dom_in_zi[i]

@@ -202,7 +202,7 @@ def create_box_mesh(xmin, xmax, ztop, zbot, lc):
     return mesh  #, nx, nz
 
 
-def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
+def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres, structured=False):
     """
     Creates regular box model, but which contains a finer zone. E.g. this finer
     zone is where the multilayer will be defined.
@@ -213,6 +213,7 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
                              the otherwise regular grid.  
         mres        (float): resolution factor with which increase the resolution in 
                              multilayer w.r.t. the default L_mult/N resolution.
+        structured  (bool) : whether we want a structurred or a unstructured mesh.
     
     Returns: mesh 
     
@@ -279,37 +280,40 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres):
         surf_bot  = model.geo.addPlaneSurface([cl_bot])
         surf_top  = model.geo.addPlaneSurface([cl_top])
 
-        # n_top  = np.ceil(L1/lc).astype(int) 
-        # n_mult = np.ceil(mres * L_mult/lc).astype(int)
-        # n_bot  = np.ceil(L2/lc).astype(int)
-        
-        # nz = n_top + n_mult + n_bot
-        # nx = np.ceil((xmax - xmin)/lc).astype(int)
+        if structured:
+            n_top  = np.ceil(L1/lc).astype(int) 
+            n_mult = np.ceil(mres * L_mult/lc).astype(int)
+            n_bot  = np.ceil(L2/lc).astype(int)
+            
+            nz = n_top + n_mult + n_bot
+            nx = np.ceil((xmax - xmin)/lc).astype(int)
 
-        # p_factor = 1.075
-        # model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -p_factor)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', p_factor)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
-        # model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', p_factor)
-        # model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -p_factor)
+            p_factor = 1.075
+            model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -p_factor)
+            model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', p_factor)
+            model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
+            model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
+            model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', p_factor)
+            model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -p_factor)
 
-        # model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
-        # model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
-        # model.geo.mesh.setTransfiniteSurface(surf_top, 'Left')
+            model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
+            model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
+            model.geo.mesh.setTransfiniteSurface(surf_top, 'Left')
 
-        model.geo.synchronize()
-        
-        model.mesh.field.add("Box", 1)
-        model.mesh.field.setNumber(1, "VIn", lc/2)
-        model.mesh.field.setNumber(1, "VOut", lc)
-        model.mesh.field.setNumber(1, "XMin", xmin)
-        model.mesh.field.setNumber(1, "XMax", xmax)
-        model.mesh.field.setNumber(1, "YMin", zbot_mult)
-        model.mesh.field.setNumber(1, "YMax", ztop_mult)
-        model.mesh.field.setNumber(1, "Thickness", 200)
+            model.geo.synchronize()
+            
+        else:
+            model.geo.synchronize()
+            model.mesh.field.add("Box", 1)
+            model.mesh.field.setNumber(1, "VIn", lc/2)
+            model.mesh.field.setNumber(1, "VOut", lc)
+            model.mesh.field.setNumber(1, "XMin", xmin)
+            model.mesh.field.setNumber(1, "XMax", xmax)
+            model.mesh.field.setNumber(1, "YMin", zbot_mult)
+            model.mesh.field.setNumber(1, "YMax", ztop_mult)
+            model.mesh.field.setNumber(1, "Thickness", 200)
 
-        model.mesh.field.setAsBackgroundMesh(1)
+            model.mesh.field.setAsBackgroundMesh(1)
 
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)

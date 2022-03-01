@@ -82,7 +82,7 @@ def nmo_correction(cmp, dt, offsets, velocities):
     for i, t0 in tqdm(enumerate(times), total=len(times)):
         for j, x in enumerate(offsets):
             t = reflection_time(t0, x, velocities[i])
-            A = sample_trace(cmp[:, j], t, dt)          # Amplitude
+            A = sample_trace(cmp[:, j], t, dt)  # Amplitude
             # If t is outside of the CMP time regime, A will be None
             if A is not None:
                 nmo[i, j] = A

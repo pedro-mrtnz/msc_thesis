@@ -8,6 +8,7 @@ import time as t
 from msc.specfem.multilayer.create_tomography_file import read_material_file
 from msc.specfem.utils.read_su_seismograms import read_su_seismogram
 from msc.specfem.utils.nmo_correction import nmo_correction
+from msc.conv.conv_model import *
 
 
 def fetch_data(path2output_files: str, verbose: bool):
@@ -51,61 +52,73 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
         for l in lines:
             if l[:2] == 'xs':
                 xs = float(l.split('=')[1].split('#')[0].strip())
-            if l[:2] == 'zs':
-                zs = float(l.split('=')[1].split('#')[0].strip())
-    
     x_offsets = offsets - xs
+
+    d2v, rho, vp, vs = read_material_file(path2mesh)
+    rho, vp, vs = rho.values, vp.values, vs.values
+    n_layers = len(vp)
     
-    zmin, zmax = zmin_max
+    zbot, ztop = zmin_max
+    nz = n_samples
+    dz = (ztop - zbot)/nz
+    z = np.linspace(ztop, zbot, nz)
+    
+    # Multilayer 
     if uneven_dict is not None:
         L_mult = uneven_dict['L_mult']
+        N_mult = n_layers - 2  # substract top and bottom layers
     else:
-        L_mult = zmax - zmin
-    nz = n_samples
-    dz = (zmax - zmin)/(nz - 1)
-    zi = np.linspace(zmax, zmin, nz)
-
-    d2v = read_material_file(path2mesh)[0]
-    N = len(d2v) - 2 if uneven_dict is not None else len(d2v)
-    dom_size = L_mult/N
-    dom_intervals = [0.0]
-    for dom_id in d2v.keys():
-        size_ = dom_size
-        if dom_id in uneven_dict:
-            size_ = uneven_dict[dom_id]
-        dom_intervals += [dom_intervals[-1] - size_]
+        L_mult = ztop - zbot
+        N_mult = n_layers
+    layer_size = L_mult/N_mult
     
-    dom_in_zi = np.zeros_like(zi).astype('int32')
-    for i, (sup_lim, inf_lim) in enumerate(zip(dom_intervals[:-1], dom_intervals[1:])):
-        mask = (zi <= sup_lim) & (zi >= inf_lim)
-        dom_in_zi[mask] = i + 1
+    interfaces = [0.0]
+    for dom_id in d2v:
+        size_ = layer_size
+        if (uneven_dict != None) and (dom_id in uneven_dict):
+            size_ = uneven_dict[dom_id]
+        interfaces += [interfaces[-1] - size_]
+    interfaces[-1] = zbot
+    
+    # Depth domain
+    vp_z = np.zeros(nz)
+    for i, (sup_lim, inf_lim) in enumerate(zip(interfaces[:-1], interfaces[1:])):
+        mask = (inf_lim <= z) & (z <= sup_lim)
+        vp_z[mask] = vp[i]
 
-    # Time-depth relationship (we only need the velocities tho)
-    nmo_times = []
-    nmo_vels = []
-    for i, dom in enumerate(dom_in_zi):
-        vel = d2v[dom]['vp']
-        if i == 0:
-            t1 = 2*(zmax - zi[i])/vel
-            nmo_times.append(t1)
-        else:
-            t2 = t1 + 2*(zi[i-1] - zi[i])/vel
-            nmo_times.append(t2)
-            t1 = t2
-        nmo_vels.append(vel)
+    # Time domain
+    vp_t, twt_t = depth2time(vp_z, vp_z, dt, dz, npts=n_samples, return_t=True)
+    
+    tdiff = np.diff(twt_t)
+    vp2_t = []
+    for i in range(1, n_samples):
+        dt_i = twt_t[i] - twt_t[i-1]
+        vp2_t.append(vp_t[i]**2 * dt_i)
+    vp_rms = np.sqrt(np.cumsum(vp2_t)/np.cumsum(tdiff))
+    vp_rms = np.concatenate(([vp_t[0]], vp_rms))
+    
+    # Muting
+    interface1 = -uneven_dict[1]
+    t0 = 2*interface1/vp[0]
+    mask = lambda t0, x: time < np.sqrt(t0**2 + (x/vp[0])**2)
+    data_m = data.copy()
+    for i, x in enumerate(x_offsets):
+        mask_ = mask(t0, x)
+        data_m[mask_,i] = 0.0
 
     # NMO CORRECTION
     start = t.time()
-    nmo = nmo_correction(data, dt, x_offsets, nmo_vels)
+    nmo = nmo_correction(data_m, dt, x_offsets, vp_rms)
     elapsed_time = t.time() - start
     print(f"NMO-correction took {elapsed_time/60:.3f} mins")
     
     collect_results = {
-        'cmp'      : data,
+        'cmp'      : data_m,
         'nmo'      : nmo,
-        'time'     : time,
-        'nmo_times': np.array(nmo_times),
-        'nmo_vels' : np.array(nmo_vels),
+        'sim_time' : time,
+        'twt_t'    : np.array(twt_t),
+        'vp_t'     : np.array(vp_t),
+        'vp_rms'   : vp_rms,
         'x_offsets': x_offsets
     }
     

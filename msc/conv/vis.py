@@ -59,11 +59,11 @@ def seismic_image(section, dt, ranges=None, cmap=None, aspect=None, vmin_max=Non
         aspect = np.round((x1 - x0)/np.max(t))
         aspect -= aspect*0.2
     if vmin_max is None:
-        # vmin_max = np.percentile(section, 99.)
-        # vmin, vmax = -vmin_max, vmin_max
-        scale = np.abs([section.max(), section.min()]).max()
-        vmin = -scale
-        vmax = scale
+        vmin_max = np.percentile(section, 99.)
+        vmin, vmax = -vmin_max, vmin_max
+        # scale = np.abs([section.max(), section.min()]).max()
+        # vmin = -scale
+        # vmax = scale
     else:
         vmin, vmax = vmin_max
     if cmap is None:
