@@ -66,7 +66,8 @@ def set_own_time_source(path2source='./DATA', time_source_fname='time_source_own
         f.writelines(lines)
 
 
-def undo_own_time_source(path2source='./DATA'):
+def undo_own_time_source(f0, path2source='./DATA'):
+    f0_line = f"f0                              = {f0:.1f}           # dominant source frequency (Hz) if not Dirac or Heaviside"
     funtion_type_line = "time_function_type              = 1\n"
     funtion_fname_line = "name_of_source_file             = YYYYYYYY       # Only for option 8 : file containing the source wavelet  YYYYYYYY\n"
     
@@ -78,6 +79,8 @@ def undo_own_time_source(path2source='./DATA'):
                 lines[i] = funtion_type_line
             if l.startswith('name'):
                 lines[i] = funtion_fname_line 
+            if l.startswith('f0'):
+                lines[i] = f0_line
     
     with open(fname, 'w') as f:
         f.writelines(lines)
