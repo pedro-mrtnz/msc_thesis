@@ -13,8 +13,10 @@ def get_noise_snr(signal, snr_tar_db):
     """
     White Gaussian noise from SNR target level (in dB)
     """
-    # NB: the signal must be 2D
-    sig_watts = signal[:, 0]**2
+    if len(signal.shape) > 1:
+        sig_watts = signal[:, 0]**2
+    else:
+        sig_watts = signal**2
     sig_avg_watts = np.mean(sig_watts, keepdims=True)
     sig_avg_db = 10 * np.log10(sig_avg_watts)
     
@@ -29,7 +31,7 @@ def get_noise_snr(signal, snr_tar_db):
     return noise
 
 
-def create_2D_noisy_tomo(mesh_res: tuple, mesh_size: list, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, path2mesh='./MESH', dest_dir='./DATA'):
+def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, path2mesh='./MESH', dest_dir='./DATA'):
     """ 
     Writes down the .xyz noisy tomo file. It first creates a clean 2D velocity model, onto which
     white noise is added. Then a gaussian filter is applied, whose dimensionality can be specified. 
@@ -46,7 +48,7 @@ def create_2D_noisy_tomo(mesh_res: tuple, mesh_size: list, uneven_dict: dict, no
     
     zbot = -sum(uneven_dict.values())
     ztop = 0.0
-    xmin, xmax = min(mesh_size[0]), max(mesh_size[0])
+    xmin, xmax = min(xmin_max), max(xmin_max)
     
     nx, nz = mesh_res
     dx = (xmax - xmin)/nx
@@ -101,7 +103,7 @@ def create_2D_noisy_tomo(mesh_res: tuple, mesh_size: list, uneven_dict: dict, no
     vp_n = vp_2d + noise
     rho_n = rho_2d + noise 
     
-    if noise_tar is not None:
+    if gaussian_filter_dim is not None:
         if gaussian_filter_dim == 'hori':
             # Horizontal filtering = constant z
             for i in range(nz):
@@ -128,7 +130,7 @@ def create_2D_noisy_tomo(mesh_res: tuple, mesh_size: list, uneven_dict: dict, no
             xcoords.append(xval)
             zcoords.append(zval)
             collect_fields['vp'].append(vp_i[j])
-            collect_fields['rho'].append(rho_n[j])
+            collect_fields['rho'].append(rho_i[j])
             collect_fields['vs'].append(vs_1d[i])
     
     assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'
@@ -142,5 +144,7 @@ def create_2D_noisy_tomo(mesh_res: tuple, mesh_size: list, uneven_dict: dict, no
         f.write(f'{min(vp)} {max(vp)} {min(vs)} {max(vs)} {min(rho)} {max(rho)}\n')
         for j in range(len(xcoords)):
             f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
+    
+    return vp_n, rho_n
     
     

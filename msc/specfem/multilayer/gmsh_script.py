@@ -288,13 +288,13 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres, structur
             nz = n_top + n_mult + n_bot
             nx = np.ceil((xmax - xmin)/lc).astype(int)
 
-            p_factor = 1.075
+            p_factor = 1.02
             model.geo.mesh.setTransfiniteCurve(p2l['lt_p4'], n_top, 'Progression', -p_factor)
             model.geo.mesh.setTransfiniteCurve(p2l['p3_rt'], n_top, 'Progression', p_factor)
             model.geo.mesh.setTransfiniteCurve(p2l['p4_p1'], n_mult, 'Progression', 1.0)
             model.geo.mesh.setTransfiniteCurve(p2l['p2_p3'], n_mult, 'Progression', 1.0)
-            model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', p_factor)
-            model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -p_factor)
+            model.geo.mesh.setTransfiniteCurve(p2l['p1_lb'], n_bot, 'Progression', p_factor+0.02)
+            model.geo.mesh.setTransfiniteCurve(p2l['rb_p2'], n_bot, 'Progression', -p_factor-0.02)
 
             model.geo.mesh.setTransfiniteSurface(surf_mult, 'Left')
             model.geo.mesh.setTransfiniteSurface(surf_bot, 'Left')
@@ -315,9 +315,9 @@ def create_fine_box_mesh(xmin, xmax, ztop, zbot, lc, uneven_dict, mres, structur
 
             model.mesh.field.setAsBackgroundMesh(1)
 
-        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
-        gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
-        gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+            gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+            gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
+            gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 
         gmsh.option.setNumber('Mesh.RecombineAll', 1)
         gmsh.option.setNumber('Mesh.Algorithm', 5)
