@@ -20,4 +20,4 @@ def get_own_ricker(f0, tmax, n_tsteps, dest_dir='./'):
             if i != len(rwav) - 1:
                 f.write(str(ti) + ' ' + str(wi) + '\n')
             else:
-                f.write(str(ti) + ' ' + str(wi)
+                f.write(str(ti) + ' ' + str(wi))
