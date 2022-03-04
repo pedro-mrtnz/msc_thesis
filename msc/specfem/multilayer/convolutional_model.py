@@ -14,6 +14,7 @@ def model_depth_domain(uneven_dict, nz=10000, path2mesh='./MESH', noise_level=No
     n_layers = len(vp)
     
     ztop, zbot = 0.0, -sum(uneven_dict.values())
+    z = np.linspace(ztop, zbot, nz)
     
     # Multilayer
     N_mult = n_layers - 2  # substract top and bottom layers
@@ -27,9 +28,6 @@ def model_depth_domain(uneven_dict, nz=10000, path2mesh='./MESH', noise_level=No
             size_ = uneven_dict[dom_id]
         interfaces += [interfaces[-1] - size_]
     interfaces[-1] = zbot
-    
-    dz = (ztop - zbot)/nz
-    z = np.linspace(ztop, zbot, nz)
     
     vp_z = np.zeros(nz)
     rho_z = np.zeros(nz)
