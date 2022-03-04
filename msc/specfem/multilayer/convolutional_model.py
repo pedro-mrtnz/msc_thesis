@@ -40,7 +40,7 @@ def model_depth_domain(uneven_dict, nz=10000, path2mesh='./MESH', noise_level=No
     if not(all(np.isin(vp_z, vp))):
         warnings.warn('Resolution is not enough!')
         
-    if noise_level is not None and (noise_level):
+    if noise_level is not None:
         noise = get_noise_snr(vp_z, noise_level)
         vp_z += noise
         rho_z += noise
