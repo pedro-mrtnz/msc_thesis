@@ -31,7 +31,7 @@ def get_noise_snr(signal, snr_tar_db):
     return noise
 
 
-def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, path2mesh='./MESH', dest_dir='./DATA'):
+def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, path2mesh='./MESH', dest_dir='./DATA', save_xyz=True):
     """ 
     Writes down the .xyz noisy tomo file. It first creates a clean 2D velocity model, onto which
     white noise is added. Then a gaussian filter is applied, whose dimensionality can be specified. 
@@ -135,15 +135,16 @@ def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, no
     
     assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'
     
-    xyz_fname = 'profile.xyz'
-    with open(os.path.join(dest_dir, xyz_fname), 'w') as f:
-        print(f'Name of the file: {f.name}')
-        f.write(f'{xmin} {zbot} {xmax} {ztop}\n')
-        f.write(f'{dx} {dz}\n')
-        f.write(f'{nx} {nz}\n')
-        f.write(f'{min(vp)} {max(vp)} {min(vs)} {max(vs)} {min(rho)} {max(rho)}\n')
-        for j in range(len(xcoords)):
-            f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
+    if save_xyz:
+        xyz_fname = 'profile.xyz'
+        with open(os.path.join(dest_dir, xyz_fname), 'w') as f:
+            print(f'Name of the file: {f.name}')
+            f.write(f'{xmin} {zbot} {xmax} {ztop}\n')
+            f.write(f'{dx} {dz}\n')
+            f.write(f'{nx} {nz}\n')
+            f.write(f'{min(vp)} {max(vp)} {min(vs)} {max(vs)} {min(rho)} {max(rho)}\n')
+            for j in range(len(xcoords)):
+                f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
     
     return vp_n, rho_n
     
