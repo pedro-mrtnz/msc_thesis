@@ -1,5 +1,6 @@
 import numpy as np 
 import warnings
+from scipy.ndimage import gaussian_filter
 from msc.specfem.multilayer.create_tomography_file import read_material_file
 from msc.specfem.multilayer.create_tomography_noisy import get_noise_snr
 
@@ -37,13 +38,13 @@ def model_depth_domain(uneven_dict, nz=10000, path2mesh='./MESH', noise_level=No
         vp_z[mask] = vp[i]
         rho_z[mask] = rho[i]
         vs_z[mask] = vs[i]
-    if not(all(np.isin(vp_z, vp))):
+    if not all(np.isin(vp_z, vp)):
         warnings.warn('Resolution is not enough!')
         
     if noise_level is not None:
         noise = get_noise_snr(vp_z, noise_level)
-        vp_z += noise
-        rho_z += noise
+        vp_z = gaussian_filter(vp_z + noise, sigma=1)
+        rho_z = gaussian_filter(rho_z + noise, sigma=1)
     
-    return vp_z, rho_z, vs_z
+    return z, vp_z, rho_z, vs_z
     
