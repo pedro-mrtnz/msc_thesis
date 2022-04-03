@@ -6,7 +6,7 @@ import pandas as pd
 import meshio
 import matplotlib.pyplot as plt
 
-from msc.specfem.utils.read_material_file import read_material_file
+from msc.specfem.utils.material_file import read_material_file
 
 def tilted_boundary(x, angle_deg, iface, ztop_bot):
     x_dist = np.max(x) - np.min(x)
@@ -70,8 +70,8 @@ def create_tomo_tilted_2Dfile(xmin_max: tuple, mesh_res: tuple, uneven: dict, an
     vs_2d = np.zeros((nz, nx))
     rho_2d = np.zeros((nz, nx))
     for i, (sup_lim, inf_lim) in enumerate(zip(interfaces[:-1], interfaces[1:])):
-        zsup_arr = tilted_boundary(x, angle_deg, sup_lim, zbot)
-        zinf_arr = tilted_boundary(x, angle_deg, inf_lim, zbot)
+        zsup_arr = tilted_boundary(x, angle_deg, sup_lim, (ztop, zbot))
+        zinf_arr = tilted_boundary(x, angle_deg, inf_lim, (ztop, zbot))
         for j, (zsup, zinf) in enumerate(zip(zsup_arr, zinf_arr)):
             mask_ = (zinf <= z) & (z <= zsup)
             vp_2d[mask_, j] = vp[i]
