@@ -149,6 +149,6 @@ def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, no
             for j in range(len(xcoords)):
                 f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
     
-    return vp_n, rho_n  # OJO! I've sitched off the noise for the density
+    return vp_n, rho_n  # OJO! Check if I've switched off the noise for the density
     
     
