@@ -7,6 +7,9 @@ Given a depth model we obtain a seismic zero-offset convolutional gather.
 """
 import numpy as np
 from scipy import interpolate
+from scipy import linalg as la
+from scipy.ndimage import gaussian_filter
+from msc.specfem.multilayer.create_tomography_noisy import get_noise_snr
 
 
 def resampling(model, tmax, twt_z, twt_tdwn, dt, dt_dwn):
@@ -72,7 +75,7 @@ def depth2time(vp, model, dt, dz, npts=None, return_t=False):
     dt_dwn = dt/t_fact
     if dt_dwn > dz/np.max(vp):
         dt_dwn = (dz/np.max(vp))/t_fact
-
+    
     # TWT in depth domain
     twt_z = np.zeros(nz)
     twt_z[0] = 2.0*dz/vp[0]
@@ -165,14 +168,14 @@ def ricker_wavelet(f0, dt, duration=None, return_t=True, shift=0.):
 
 def ricker_own(time, f0):
     """ Variable time already takes into account dt """
-    t_w = 2.2/f0
+    t_w = 2.5/f0
     t = time - t_w/2
     a = (np.pi * f0)**2
     w = (1 - 2*a*t**2)*np.exp(-a*t**2)
     return w, t
 
 
-def convolutional_model(rc, f0, dt, own_w=None, shift=0.):
+def convolutional_model(rc, f0, dt, own_w=None, noise_level=None, shift=0., return_t=False):
     """Computes de convolutional seismogram by convoluting the
     reflectivity with the Ricker wavelet.
 
@@ -186,14 +189,26 @@ def convolutional_model(rc, f0, dt, own_w=None, shift=0.):
         synth_t (1D array): convolved seismogram. 
     """
     if own_w is None:
-        w = ricker_wavelet(f0, dt, return_t=False, shift=shift)
+        w, twav = ricker_wavelet(f0, dt, return_t=True, shift=shift)
     else:
         w = own_w
+        
     synth_t = np.zeros_like(rc)
     if np.shape(rc)[0] >= len(w):
         synth_t = np.convolve(rc, w, mode='same')
+        # R = la.convolution_matrix(rc, len(w), mode='same')
+        # synth_t = np.dot(R, w)
     else:
         aux = int(np.floor(len(w)/2.))
         synth_t = np.convolve(rc, w, mode='full')[aux:-aux]
+        # R = la.convolution_matrix(rc, len(w), mode='full')
+        # synth_t = np.dot(R, w)[aux:-aux]
+        
+    if noise_level is not None:
+        noise = get_noise_snr(synth_t, noise_level)
+        synth_t = gaussian_filter(synth_t + noise, sigma=1.)
 
-    return synth_t
+    if return_t is False:
+        return synth_t
+    else:
+        return synth_t, twav

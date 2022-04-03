@@ -5,7 +5,7 @@ from msc.specfem.multilayer.create_tomography_file import read_material_file
 from msc.specfem.multilayer.create_tomography_noisy import get_noise_snr
 
 
-def model_depth_domain(uneven_dict, nz=10000, path2mesh='./MESH', noise_level=None):
+def model_depth_domain(uneven_dict, nz=10000, path2mesh='./MESH', noise_level=None, sigma=20):
     """ 
     Gets the models (velocities and density) in the depth domain for the case of the
     multilayer. This is necessary for the convolutional model.
@@ -43,8 +43,16 @@ def model_depth_domain(uneven_dict, nz=10000, path2mesh='./MESH', noise_level=No
         
     if noise_level is not None:
         noise = get_noise_snr(vp_z, noise_level)
-        vp_z = gaussian_filter(vp_z + noise, sigma=1)
-        rho_z = gaussian_filter(rho_z + noise, sigma=1)
+        vp_z = gaussian_filter(vp_z + noise, sigma=sigma)
+        rho_z = gaussian_filter(rho_z + noise, sigma=sigma)
     
     return z, vp_z, rho_z, vs_z
     
+
+def time_depth_domain(nz, dz, vp):
+    twt_z = np.zeros(nz)
+    twt_z[0] = 2.0*dz/vp[0]
+    for i in range(1, nz):
+        twt_z[i] = twt_z[i-1] + 2.0*dz/vp[i]
+    
+    return twt_z

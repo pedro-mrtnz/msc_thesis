@@ -14,7 +14,7 @@ def get_own_ricker(f0, tmax, n_tsteps, dest_dir='./'):
     time = np.linspace(0, tmax, n_tsteps)
     rwav, t_w = ricker_own(time, f0)
     
-    fname = '../time_source_own.txt'
+    fname = './time_source_own.txt'
     with open(fname, 'w') as f:
         for i, (ti, wi) in enumerate(zip(t_w, rwav)):
             if i != len(rwav) - 1:

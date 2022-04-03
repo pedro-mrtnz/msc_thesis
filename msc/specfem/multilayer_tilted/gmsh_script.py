@@ -1,20 +1,22 @@
-import os
+import os 
 import subprocess
 import numpy as np
+import pandas as pd
 
+import pygmsh
 import meshio
 import gmsh
 
 def create_box_mesh(xmin, xmax, ztop, zbot, lc):
-    """Creates a square mesh (box) onto which define the tomo file.
+    """_summary_
 
     Args:
         xmin (float): leftmost boundary
-        xmax (float): rightmost boundary
+        xmax (float): rightmosht boundary
         ztop (float): uppermost boundary
         zbot (float): bottommost boundary
         lc   (float): mesh element size
-    Returns:
+    Return_
         mesh (meshio.Mesh): box-like mesh.
     """
     gmsh.initialize()
@@ -109,4 +111,3 @@ echo "Done!"
 
     os.chdir('..')
     assert(os.getcwd() == current_dir)
-    

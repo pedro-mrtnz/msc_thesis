@@ -38,7 +38,7 @@ def fetch_data(path2output_files: str, verbose: bool):
     return data, time, dt, offsets
     
 
-def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict: dict, verbose=True):
+def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict: dict, data_m=None, verbose=True):
     """
     Run the NMO correction on the multilayer data. 
     """
@@ -98,13 +98,16 @@ def run_nmo(path2output_files: str, path2mesh: str, zmin_max: tuple, uneven_dict
     vp_rms = np.concatenate(([vp_t[0]], vp_rms))
     
     # Muting
-    interface1 = -uneven_dict[1]
-    t0 = 2*interface1/vp[0]
-    mask = lambda t0, x: time < np.sqrt(t0**2 + (x/vp[0])**2)
-    data_m = data.copy()
-    for i, x in enumerate(x_offsets):
-        mask_ = mask(t0, x)
-        data_m[mask_,i] = 0.0
+    if data_m is None:
+        interface1 = -uneven_dict[1]
+        t0 = 2*interface1/vp[0]
+        mask = lambda t0, x: time < np.sqrt(t0**2 + (x/vp[0])**2)
+        data_m = data.copy()
+        for i, x in enumerate(x_offsets):
+            mask_ = mask(t0, x)
+            data_m[mask_,i] = 0.0
+    else:
+        data_m = data_m
 
     # NMO CORRECTION
     start = t.time()

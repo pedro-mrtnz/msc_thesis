@@ -31,7 +31,7 @@ def get_noise_snr(signal, snr_tar_db):
     return noise
 
 
-def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, path2mesh='./MESH', dest_dir='./DATA', save_xyz=True):
+def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, invertz=False, path2mesh='./MESH', dest_dir='./DATA', save_xyz=True):
     """ 
     Writes down the .xyz noisy tomo file. It first creates a clean 2D velocity model, onto which
     white noise is added. Then a gaussian filter is applied, whose dimensionality can be specified. 
@@ -54,7 +54,7 @@ def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, no
     dx = (xmax - xmin)/nx
     dz = (ztop - zbot)/nz
     
-    z = np.linspace(zbot, ztop, nz)
+    z = np.linspace(zbot, ztop, nz) if not(invertz) else np.linspace(ztop, zbot, nz)
     x = np.linspace(xmin, xmax, nx)
     
     d2v, rho, vp, vs = read_material_file(path2mesh)
@@ -106,18 +106,21 @@ def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, no
     if gaussian_filter_dim is not None:
         if gaussian_filter_dim == 'hori':
             # Horizontal filtering = constant z
+            sigma = 10
             for i in range(nz):
-                vp_n[i,:] = gaussian_filter(vp_n[i,:], sigma=1)
-                rho_n[i,:] = gaussian_filter(rho_n[i,:], sigma=1)
+                vp_n[i,:] = gaussian_filter(vp_n[i,:], sigma=sigma)
+                rho_n[i,:] = gaussian_filter(rho_n[i,:], sigma=sigma)
         elif gaussian_filter_dim == 'vert':
             # Vertical filtering = constant x
+            sigma = 3
             for j in range(nx):
-                vp_n[:,j] = gaussian_filter(vp_n[:,j], sigma=1)
-                rho_n[:,j] = gaussian_filter(rho_n[:,j], sigma=1)
+                vp_n[:,j] = gaussian_filter(vp_n[:,j], sigma=sigma)
+                rho_n[:,j] = gaussian_filter(rho_n[:,j], sigma=sigma)
         elif gaussian_filter_dim == 'both':
             # 2D filtering in both directions
-            vp_n = gaussian_filter(vp_n, sigma=1)
-            rho_n = gaussian_filter(rho_n, sigma=1)
+            sigma = 12
+            vp_n = gaussian_filter(vp_n, sigma=sigma)
+            rho_n = gaussian_filter(rho_n, sigma=sigma)
     
     # Collect data in the correct format
     xcoords = []
@@ -146,6 +149,6 @@ def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, no
             for j in range(len(xcoords)):
                 f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
     
-    return vp_n, rho_n
+    return vp_n, rho_n  # OJO! I've sitched off the noise for the density
     
     
