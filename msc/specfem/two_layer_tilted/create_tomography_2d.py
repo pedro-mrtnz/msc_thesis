@@ -2,7 +2,7 @@ import os
 import numpy as np
 from msc.specfem.multilayer_tilted.create_tomography_2d import tilted_boundary 
 
-def create_tomo_tilted_2d(xmin_max, ztop_bot, mesh_res, vel_dict, angle_deg, path2mesh='./MESH', dest_dir='./DATA', invertz=False, save_xyz=True):
+def create_tomo_tilted_2D(xmin_max, ztop_bot, mesh_res, vel_dict, angle_deg, iface_pos=0.5, dest_dir='./DATA', invertz=False, save_xyz=True):
     ztop, zbot = ztop_bot
     xmin, xmax = xmin_max
     
@@ -13,7 +13,7 @@ def create_tomo_tilted_2d(xmin_max, ztop_bot, mesh_res, vel_dict, angle_deg, pat
     zi = np.linspace(zbot, ztop, nz) if not(invertz) else np.linspace(ztop, zbot, nz)
     
     # 2D model
-    interface = ztop - 0.5*(ztop - zbot)
+    interface = ztop - iface_pos*(ztop - zbot)
     tilted_interface = tilted_boundary(xi, angle_deg, interface, ztop_bot)
     
     xcoords = []

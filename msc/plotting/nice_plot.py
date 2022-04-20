@@ -5,7 +5,7 @@ import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 
-def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfigure=True, colorbar=True, figsize=(8,8), save=False, savename='', tform_overlay=(False, 0), title='', extent=None, interpolation='nearest', logscale=False, linthresh=1e-4, cbar_label=''):
+def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), fig=None, colorbar=True, figsize=(8,8), save=False, savename='', tform_overlay=(False, 0), title=None, extent=None, interpolation='nearest', logscale=False, linthresh=1e-4, cbar_label=''):
     """
     Plotting a 2D image.
 
@@ -14,7 +14,7 @@ def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfig
         cmap          (str)   : colormap used to plot the image. Defaults to 'nice' = 'RdGy.
         aspect        (scalar): aspect ratio of the axes. Defaults to 0.3.
         vmin_max      (tuple) : (vmin, vmax) min and max values of the colorscale. Defaults to (None, None).
-        newfigure     (bool)  : if True a new figure will be created. Defaults to True.
+        fig           (bool)  : if None a new figure will be created. Defaults to None.
         colorbar      (bool)  : if True a colorbar will be created. Defaults to True.
         figsize       (tuple) : size of the figure. Defaults to (8,8).
         save          (bool)  : if True the figure will be saved as 'savename'. Defaults to False.
@@ -37,9 +37,10 @@ def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfig
         nodes  = [0.0, 0.1, .3, .42, .5, .58, .7, 0.9, 1.0]
         cmap = colors.LinearSegmentedColormap.from_list('mycmap', list(zip(nodes,colors_cmap)))
         
-    if newfigure:
+    if fig is None:
         fig, axs = plt.subplots(figsize=figsize, constrained_layout=True)
-        axs.set_title(title)
+        if title is not None:
+            axs.set_title(title)
         axs.xaxis.set_ticks_position('top')
         axs.xaxis.set_label_position('top')
         
@@ -54,13 +55,13 @@ def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), newfig
                             cmap = cmap, 
                             shading = 'auto')
     else:
-        if newfigure:
+        if fig is None:
             im = axs.imshow(image, cmap=cmap, aspect=aspect, vmin=vmin, vmax=vmax, interpolation=interpolation, extent=extent)
         else:
             im = plt.imshow(image, cmap=cmap, aspect=aspect, vmin=vmin,
                             vmax=vmax, interpolation=interpolation, extent=extent)
     
-    if colorbar and newfigure:
+    if colorbar:
         cbar = fig.colorbar(im, aspect=40, pad=0.0, label=cbar_label, orientation='horizontal')
     
     if save:

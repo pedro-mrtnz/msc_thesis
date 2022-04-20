@@ -37,7 +37,7 @@ def seismic_wiggle(section, dt, scale=1.0, color='k', ranges=None):
     plt.ylim(max(t), 0)
 
 
-def seismic_image(section, dt, ranges=None, cmap=None, aspect=None, vmin_max=None):
+def seismic_image(section, dt, fig=None, ranges=None, cmap=None, aspect=None, vmin_max=None):
     """Plot seismic section (2D array) as an image.
 
     Args:
@@ -74,6 +74,6 @@ def seismic_image(section, dt, ranges=None, cmap=None, aspect=None, vmin_max=Non
                         vmin_max = (vmin, vmax),
                         extent = extent,
                         cmap = cmap,
-                        newfigure = False)
-    plt.xlabel('Receiver number', fontsize=14)
-    plt.ylabel('Time [s]', fontsize=14)
+                        fig = fig)
+    plt.xlabel('Receiver number')
+    plt.ylabel('Time (s)')

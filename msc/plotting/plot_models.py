@@ -158,7 +158,7 @@ def read_xyz_data(path: str):
     return pd.read_csv(glob.glob(os.path.join(path, '*.xyz'))[0], sep='\s+', skiprows=4).values
     
 
-def plot_model(path, field, res=(100,200), extension='bin'):
+def plot_model(path, field, res=(100,200), extension='bin', cmap=None, fig=None, figsize=None):
     """
     Plot field model, where field can be either velocity or density. 
     """
@@ -184,7 +184,7 @@ def plot_model(path, field, res=(100,200), extension='bin'):
             'vs'  : data[:,3],
             'rho' : data[:,4]
         }
-        
+
     xmin, xmax = min(x), max(x)
     zmin, zmax = min(z), max(z)
     resX, resZ = res
@@ -195,9 +195,9 @@ def plot_model(path, field, res=(100,200), extension='bin'):
     # Fixme: implement case in which len(fields) > 1
     
     field2cbar_label = {
-        'vp' : 'Vp [m/s]',
-        'vs' : 'Vs [m/s]',
-        'rho': r'Density [kg/m$^3$]'
+        'vp' : r'$v_p$ (m/s)',
+        'vs' : r'$v_s$ (m/s)',
+        'rho': r'$\rho$ $(\mathrm{kg/m^3})$'
     }
     if field not in field2cbar_label.keys():
         print('Field not recognised!')
@@ -208,13 +208,14 @@ def plot_model(path, field, res=(100,200), extension='bin'):
     nplt.plotting_image(F,
                         extent = [xmin, xmax, zmin, zmax],
                         aspect = ConfigPlots.aspect,
-                        cmap = ConfigPlots.cmap,
+                        cmap = ConfigPlots.cmap if cmap is None else cmap,
                         vmin_max = ConfigPlots.vmin_max,
-                        figsize = ConfigPlots.figsize,
+                        fig = fig,
+                        figsize = ConfigPlots.figsize if figsize is None else figsize,
                         cbar_label = cbar_label)
-    plt.xlabel(r'$x$ [m]')
-    plt.ylabel(r'$z$ [m]')
-    plt.show()
+    plt.xlabel(r'$x$ (m)')
+    plt.ylabel(r'$z$ (m)')
+    # plt.show()
     
     
 
