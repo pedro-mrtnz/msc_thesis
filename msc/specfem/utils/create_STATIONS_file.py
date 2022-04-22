@@ -32,6 +32,9 @@ def create_stations_file(rec_lims, pos_ini, nsts_x, nsts_z, zero_offset=None, de
     idx_len = int(math.ceil(math.log10(nsts_x * nsts_z)))
     
     # Create nsts_x * nsts_z receivers
+    if zero_offset is not None:
+        x_zo, z_zo = zero_offset
+    
     stations = []
     irec = 0
     for iz in range(nsts_z):
@@ -44,13 +47,15 @@ def create_stations_file(rec_lims, pos_ini, nsts_x, nsts_z, zero_offset=None, de
             network = "AA"                    # Network station
             
             stations.append(f"{st_name:<10s} {network:<10s} {f'{x:.2f}':<15s} {f'{z:.2f}':<15s} {str(0.0):<15s} {0.0}\n")
-    
-    if zero_offset is not None:
-        irec += 1
-        st_name = f"S{irec:0{idx_len}d}"
-        network = "AA"
-        x, z = zero_offset
-        stations.append(f"{st_name:<10s} {network:<10s} {f'{x:.2f}':<15s} {f'{z:.2f}':<15s} {str(0.0):<15s} {0.0}\n")
+            
+            if zero_offset is not None:
+                if x_zo == x:
+                    pass
+                elif (x < x_zo) and (x_zo < x0 + (ix + 1)*dx):
+                    irec += 1
+                    st_name = f"S{irec:0{idx_len}d}"
+                    network = "AA"
+                    stations.append(f"{st_name:<10s} {network:<10s} {f'{x_zo:.2f}':<15s} {f'{z_zo:.2f}':<15s} {str(0.0):<15s} {0.0}\n")
     
     for line in stations:
         f.write(line)

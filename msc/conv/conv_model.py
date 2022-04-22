@@ -49,15 +49,15 @@ def resampling(model, tmax, twt_z, twt_tdwn, dt, dt_dwn):
     return model_t, twt_t
 
 
-def interpolate2npts(npts, time, model):
-    interpolator = interpolate.interp1d(time, model)
+def interpolate2npts(npts, time, model, kind):
+    interpolator = interpolate.interp1d(time, model, kind=kind)
     t_npts = np.linspace(time[0], time[-1], npts)
     model_npts = interpolator(t_npts)
     
     return model_npts, t_npts
 
 
-def depth2time(vp, model, dt, dz, npts=None, return_t=False):
+def depth2time(vp, model, dt, dz, npts=None, kind='linear', return_t=False):
     """Converts depth property model to time model.
 
     Args:
@@ -92,7 +92,7 @@ def depth2time(vp, model, dt, dz, npts=None, return_t=False):
     # Resample model property according to time (e.g. velocity)
     model_t, twt_t = resampling(model, tmax, twt_z, twt_t, dt, dt_dwn)
     if npts is not None:
-        model_t, twt_t = interpolate2npts(npts, twt_t, model_t)
+        model_t, twt_t = interpolate2npts(npts, twt_t, model_t, kind)
 
     if return_t:
         return model_t, twt_t
@@ -120,6 +120,21 @@ def get_reflectivity(vel, rho):
     Z = list2array(vel) * list2array(rho)
     R = (Z[1:] - Z[:-1])/(Z[1:] + Z[:-1])
     return R
+
+
+def get_spectrum(signal, dt, npts=None):
+    from scipy.fft import rfft, rfftfreq
+    
+    ftrans = rfft(signal, npts)
+    ampli = np.abs(ftrans)
+    phase = np.angle(ftrans)
+    power = 20 * np.log10(ampli)
+    if npts is None:
+        f = rfftfreq(len(signal), d=dt)
+    else:
+        f = rfftfreq(npts, d=dt)
+    
+    return ampli, power, phase, f
 
 
 # def ricker_wavelet(f0, dt):
