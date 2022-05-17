@@ -5,7 +5,7 @@ import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 
-def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), fig=None, colorbar=True, figsize=(8,8), save=False, savename='', tform_overlay=(False, 0), title=None, extent=None, interpolation='nearest', logscale=False, linthresh=1e-4, cbar_label=''):
+def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), fig=None, colorbar=True, figsize=(8,8), save=False, savename='', tform_overlay=(False, 0), title=None, extent=None, interpolation='nearest', logscale=False, linthresh=1e-4, cbar_label='', cbar_pad=0.0, cbar_ori='horizontal', cbar_power=False):
     """
     Plotting a 2D image.
 
@@ -62,7 +62,9 @@ def plotting_image(image, cmap='nice', aspect=0.3, vmin_max=(None, None), fig=No
                             vmax=vmax, interpolation=interpolation, extent=extent)
     
     if colorbar:
-        cbar = fig.colorbar(im, aspect=40, pad=0.0, label=cbar_label, orientation='horizontal')
+        cbar = fig.colorbar(im, aspect=40, pad=cbar_pad, label=cbar_label, orientation=cbar_ori)
+        if cbar_power:
+            cbar.formatter.set_powerlimits((0, 0))
     
     if save:
         if not os.path.exists('plots/'):

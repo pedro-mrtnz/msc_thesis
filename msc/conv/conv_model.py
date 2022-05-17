@@ -125,7 +125,7 @@ def get_reflectivity(vel, rho):
 def get_spectrum(signal, dt, npts=None):
     from scipy.fft import rfft, rfftfreq
     
-    ftrans = rfft(signal, npts)
+    ftrans = np.fft.rfft(signal, npts)  # rfft(signal, npts)
     ampli = np.abs(ftrans)
     phase = np.angle(ftrans)
     power = 20 * np.log10(ampli)
@@ -190,7 +190,7 @@ def ricker_own(time, f0):
     return w, t
 
 
-def convolutional_model(rc, f0, dt, own_w=None, noise_level=None, shift=0., return_t=False):
+def convolutional_model(rc, f0=None, dt=None, own_w=None, use_toepl=False, noise_level=None, shift=0., return_t=False):
     """Computes de convolutional seismogram by convoluting the
     reflectivity with the Ricker wavelet.
 
@@ -208,16 +208,19 @@ def convolutional_model(rc, f0, dt, own_w=None, noise_level=None, shift=0., retu
     else:
         w = own_w
         
-    synth_t = np.zeros_like(rc)
-    if np.shape(rc)[0] >= len(w):
-        synth_t = np.convolve(rc, w, mode='same')
-        # R = la.convolution_matrix(rc, len(w), mode='same')
-        # synth_t = np.dot(R, w)
+    # synth_t = np.zeros_like(rc)
+    if use_toepl:
+        R = la.toeplitz(rc)
+        rrange = np.arange(len(rc))
+        wrange = np.arange(len(w))
+        w_sam = np.interp(rrange, wrange, w)
+        synth_t = np.dot(R, w_sam)
     else:
-        aux = int(np.floor(len(w)/2.))
-        synth_t = np.convolve(rc, w, mode='full')[aux:-aux]
-        # R = la.convolution_matrix(rc, len(w), mode='full')
-        # synth_t = np.dot(R, w)[aux:-aux]
+        if np.shape(rc)[0] >= len(w):
+            synth_t = np.convolve(rc, w, mode='same')
+        else:
+            aux = int(np.floor(len(w)/2.))
+            synth_t = np.convolve(rc, w, mode='full')[aux:-aux]
         
     if noise_level is not None:
         noise = get_noise_snr(synth_t, noise_level)

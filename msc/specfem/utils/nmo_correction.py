@@ -63,7 +63,7 @@ def sample_trace(trace, t, dt):
     return amp
 
 
-def nmo_correction(cmp, dt, offsets, velocities):
+def nmo_correction(cmp, dt, offsets, velocities, shift=None):
     """
     Performs the NMO correction on the given CMP. 
     
@@ -79,6 +79,10 @@ def nmo_correction(cmp, dt, offsets, velocities):
     nmo = np.zeros_like(cmp)
     n_samples = cmp.shape[0]
     times = np.arange(0, n_samples*dt, dt)
+    if shift is not None:
+        times += 0.1
+    if len(times) > n_samples:
+        times = times[:-1]
     for i, t0 in tqdm(enumerate(times), total=len(times)):
         for j, x in enumerate(offsets):
             t = reflection_time(t0, x, velocities[i])

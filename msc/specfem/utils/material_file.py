@@ -17,15 +17,14 @@ def get_materials(path2refl, rho_ini, vp_ini, verbose=True):
     """
     vs, Q_mu, Q_kappa = 0, 9999, 9999
     mat_id = 1
-    alpha = 1.5
+    alpha = 1.8
     if verbose:
         print('MATERIAL LAYER 1:')
         print(f"{'  Rho, Vp, Vs': <15} = {rho_ini}, {vp_ini}, {vs}")
         print(f"{'  Q_mu, Q_kappa': <15} = {Q_mu}, {Q_kappa}")
         print(f"{'  Material ID': <15} = {mat_id}")
         print(f"{'  Cte vp-rho': <15} = {alpha}")
-        
-    alpha = 1.8
+    
     refls = np.loadtxt(path2refl)
     if not os.path.exists('MESH/'):
         os.system('mkdir -p MESH/')

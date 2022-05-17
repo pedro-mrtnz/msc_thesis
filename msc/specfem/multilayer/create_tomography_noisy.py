@@ -4,6 +4,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 
 from msc.specfem.multilayer.create_tomography_file import read_material_file
+from msc.specfem.utils.scale_signal import scale_sig
 
 ###
 # FOR FULL DOCUMENTATION ABOUT THE REST OF VARIABLES, TAKE A LOOK AT 'create_tomography_file.py'
@@ -31,7 +32,7 @@ def get_noise_snr(signal, snr_tar_db):
     return noise
 
 
-def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, invertz=False, path2mesh='./MESH', dest_dir='./DATA', save_xyz=True):
+def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, noise_tar: float, gaussian_filter_dim: str, invertz=False, path2mesh='./MESH', dest_dir='./DATA', save_xyz=True, sig_scale=None):
     """ 
     Writes down the .xyz noisy tomo file. It first creates a clean 2D velocity model, onto which
     white noise is added. Then a gaussian filter is applied, whose dimensionality can be specified. 
@@ -75,66 +76,54 @@ def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, no
         interfaces += [interfaces[-1] + size_]
     interfaces[-2] = -uneven_dict[1]
     interfaces[-1] = ztop
-    
-    # 1D models
-    vp_1d = np.zeros(nz)
-    vs_1d = np.zeros(nz)
-    rho_1d = np.zeros(nz)
+        
+    vp_2d = np.zeros((nz, nx))
+    vs_2d = np.zeros((nz, nx))
+    rho_2d = np.zeros((nz, nx))
     for i, (inf_lim, sup_lim) in enumerate(zip(interfaces[:-1], interfaces[1:])):
         idx = (n_layers - 1) - i
         mask = (inf_lim <= z) & (z <= sup_lim)
-        vp_1d[mask] = vp[idx]
-        vs_1d[mask] = vs[idx]
-        rho_1d[mask] = rho[idx]
+        vp_2d[mask, :] = vp[idx]
+        rho_2d[mask, :] = rho[idx]
     
-    # 2D models + noise
-    # NB: it's all acoustic so no noise added to vs
-    vp_2d = np.zeros((nz, nx))
-    rho_2d = np.zeros((nz, nx))
-    for i in range(nx):
-        vp_2d[:,i] = vp_1d
-        rho_2d[:, i] = rho_1d
+    if sig_scale is not None:
+        vp_2d = scale_sig(vp_2d, sig_scale)
+        # rho_2d = scale_sig(rho_2d, sig_scale)
     
     if noise_tar is not None:
         noise = get_noise_snr(vp_2d, noise_tar)
     else: 
         # No noise
         noise = np.zeros_like(vp_2d)
-    vp_n = vp_2d + noise
-    rho_n = rho_2d + noise 
+    vp_2d += noise
     
     if gaussian_filter_dim is not None:
         if gaussian_filter_dim == 'hori':
             # Horizontal filtering = constant z
-            sigma = 10
+            sigma = 7.5
             for i in range(nz):
-                vp_n[i,:] = gaussian_filter(vp_n[i,:], sigma=sigma)
-                rho_n[i,:] = gaussian_filter(rho_n[i,:], sigma=sigma)
+                vp_2d[i,:] = gaussian_filter(vp_2d[i,:], sigma=sigma)
         elif gaussian_filter_dim == 'vert':
             # Vertical filtering = constant x
             sigma = 3
             for j in range(nx):
-                vp_n[:,j] = gaussian_filter(vp_n[:,j], sigma=sigma)
-                rho_n[:,j] = gaussian_filter(rho_n[:,j], sigma=sigma)
+                vp_2d[:,j] = gaussian_filter(vp_2d[:,j], sigma=sigma)
         elif gaussian_filter_dim == 'both':
             # 2D filtering in both directions
-            sigma = 12
-            vp_n = gaussian_filter(vp_n, sigma=sigma)
-            rho_n = gaussian_filter(rho_n, sigma=sigma)
+            sigma = 5
+            vp_2d = gaussian_filter(vp_2d, sigma=sigma)
     
     # Collect data in the correct format
     xcoords = []
     zcoords = []
     collect_fields = {'vp': [], 'vs': [], 'rho': []}
     for i, zval in enumerate(z):
-        vp_i = vp_n[i,:]
-        rho_i = rho_n[i,:]
         for j, xval in enumerate(x):
             xcoords.append(xval)
             zcoords.append(zval)
-            collect_fields['vp'].append(vp_i[j])
-            collect_fields['rho'].append(rho_i[j])
-            collect_fields['vs'].append(vs_1d[i])
+            collect_fields['vp'].append(vp_2d[i,j])
+            collect_fields['rho'].append(rho_2d[i,j])
+            collect_fields['vs'].append(vs_2d[i,j])
     
     assert len(xcoords) == len(zcoords), 'Mismatch in sizes!'
     
@@ -149,6 +138,6 @@ def create_2D_noisy_tomo(mesh_res: tuple, xmin_max: tuple, uneven_dict: dict, no
             for j in range(len(xcoords)):
                 f.write(f"{xcoords[j]} {zcoords[j]} {collect_fields['vp'][j]} {collect_fields['vs'][j]} {collect_fields['rho'][j]}\n")
     
-    return vp_n, rho_n  # OJO! Check if I've switched off the noise for the density
+    return vp_2d, rho_2d  # OJO! Check if I've switched off the noise for the density
     
     
