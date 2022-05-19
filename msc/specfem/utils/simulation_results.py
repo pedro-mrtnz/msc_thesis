@@ -110,15 +110,12 @@ class Simulation():
         vp_t, twt = depth2time(self.vp_z, self.vp_z, self.dt, dz, return_t=True)
         rho_t = depth2time(self.vp_z, self.rho_z, self.dt, dz, return_t=False)
         
-        print (twt[-1])
-        
         # get times within the simulation time 
         tmax = self.data.shape[0] * self.dt
         mask = twt < tmax
         twt  = twt[mask]
         vp_t = vp_t[mask]
         rho_t = rho_t[mask]
-            
         
         # interpolate so everything is aligned
         interpolator_v = interpolate.interp1d(twt, vp_t)
