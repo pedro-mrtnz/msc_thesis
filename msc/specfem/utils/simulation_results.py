@@ -13,14 +13,20 @@ from scipy import interpolate
 class Simulation():
     def __init__(self, xmin_max, sim_file, parent_dir):
         self.path2mesh = os.path.join(parent_dir, 'MESH')
-        self.path2output_files = os.path.join(parent_dir, 'OUTPUT_FILES_' + sim_file)
-        self.uneven_dict = self.get_uneven_dict()
+        if len(sim_file) > 0:
+            self.path2output_files = os.path.join(parent_dir, 'OUTPUT_FILES_' + sim_file)
+        else:
+            self.path2output_files = os.path.join(parent_dir, 'OUTPUT_FILES')
         self.parent_dir = parent_dir
+        self.uneven_dict = self.get_uneven_dict()
         
         self.xmin, self.xmax = xmin_max
         self.ztop, self.zbot = self.get_ztop_bot()
         
-        self.mid, self.x_offsets = self.get_middle_trace()
+        self.mid = None
+        self.offsets = None
+        self.x_offsets = None
+        self.get_middle_trace()
         
         self.vp_tomo = None
         self.rho_tomo = None
@@ -34,6 +40,8 @@ class Simulation():
         self.t0 = 0.5
         self.data_m = None
         self.mute_data()
+        
+        self.middle_trace = self.data_m[:,self.mid]
         
         self.vp_z = self.vp_tomo[:, self.mid]
         self.rho_z = self.rho_tomo[:, self.mid]
@@ -67,7 +75,7 @@ class Simulation():
     
     def get_middle_trace(self):
         stations = pd.read_csv(os.path.join(self.path2output_files, 'STATIONS'), header=None, delim_whitespace=True)
-        offsets = stations[2].values
+        self.offsets = stations[2].values
 
         # Source position
         source_fname = os.path.join(self.path2output_files, 'SOURCE')
@@ -79,9 +87,8 @@ class Simulation():
                 if l[:2] == 'zs':
                     zs = float(l.split('=')[1].split('#')[0].strip())
 
-        x_offsets = offsets - xs
-        mid = np.argmin(np.abs(x_offsets))
-        return mid, x_offsets
+        self.x_offsets = self.offsets - xs
+        self.mid = np.argmin(np.abs(self.x_offsets))
     
     def load_tomo_models(self):
         tomo_models = np.load(os.path.join(self.path2output_files, 'tomo_models.npz'))
@@ -110,7 +117,7 @@ class Simulation():
         vp_t, twt = depth2time(self.vp_z, self.vp_z, self.dt, dz, return_t=True)
         rho_t = depth2time(self.vp_z, self.rho_z, self.dt, dz, return_t=False)
         
-        print (twt[-1])
+        print(twt[-1], self.time[-1])
         
         # get times within the simulation time 
         tmax = self.data.shape[0] * self.dt
@@ -118,13 +125,12 @@ class Simulation():
         twt  = twt[mask]
         vp_t = vp_t[mask]
         rho_t = rho_t[mask]
-            
         
         # interpolate so everything is aligned
-        interpolator_v = interpolate.interp1d(twt, vp_t)
-        self.vp_t = interpolator_v(self.time)
-        interpolator_rho = interpolate.interp1d(twt, rho_t)
-        self.rho_t = interpolator_rho(self.time)
+        interpolator = interpolate.interp1d(twt, vp_t)
+        self.vp_t = interpolator(self.time)
+        interpolator = interpolate.interp1d(twt, rho_t)
+        self.rho_t = interpolator(self.time)
         
     def get_rms_vel(self):
         tdiff = np.diff(self.time)
