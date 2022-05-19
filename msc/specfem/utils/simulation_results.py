@@ -117,8 +117,6 @@ class Simulation():
         vp_t, twt = depth2time(self.vp_z, self.vp_z, self.dt, dz, return_t=True)
         rho_t = depth2time(self.vp_z, self.rho_z, self.dt, dz, return_t=False)
         
-        print(twt[-1], self.time[-1])
-        
         # get times within the simulation time 
         tmax = self.data.shape[0] * self.dt
         mask = twt < tmax
